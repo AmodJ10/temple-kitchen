@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-echo "==> Installing root dependencies..."
+echo "==> Installing root dependencies (includes zod for shared/)..."
 npm install
-
-echo "==> Installing shared dependencies..."
-cd shared && npm install && cd ..
 
 echo "==> Installing client dependencies & building..."
 cd client && npm install --include=dev && npm run build && cd ..
