@@ -5,8 +5,7 @@ services:
     region: oregon
     plan: free
     rootDir: .
-    buildCommand: |
-      npm install && cd shared && npm install && cd ../client && npm install --include=dev && npm run build && cd ../server && npm install
+    buildCommand: chmod +x render-build.sh && ./render-build.sh
     startCommand: cd server && node src/server.js
     envVars:
       - key: NODE_ENV
