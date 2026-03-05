@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: |
-      npm install && cd client && npm install --include=dev && npm run build && cd ../server && npm install
+      npm install && cd shared && npm install && cd ../client && npm install --include=dev && npm run build && cd ../server && npm install
     startCommand: cd server && node src/server.js
     envVars:
       - key: NODE_ENV
