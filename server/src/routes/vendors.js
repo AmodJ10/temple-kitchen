@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as ctrl from '../controllers/vendorController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
-import { vendorSchema } from '../../../shared/index.js';
+import { vendorSchema } from '../schemas.js';
 
 const router = Router();
 

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as ctrl from '../controllers/eventController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
-import { eventSchema } from '../../../shared/index.js';
+import { eventSchema } from '../schemas.js';
 
 const router = Router();
 

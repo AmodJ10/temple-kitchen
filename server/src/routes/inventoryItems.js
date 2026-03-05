@@ -2,7 +2,7 @@ import { Router } from 'express';
 import * as ctrl from '../controllers/inventoryController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
-import { inventoryItemSchema, stockAdjustmentSchema } from '../../../shared/index.js';
+import { inventoryItemSchema, stockAdjustmentSchema } from '../schemas.js';
 
 const router = Router();
 
