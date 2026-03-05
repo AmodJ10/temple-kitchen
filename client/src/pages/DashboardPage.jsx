@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResponsiveGridLayout } from 'react-grid-layout';
 import {
@@ -168,6 +168,15 @@ const DashboardPage = () => {
         }
     });
 
+    // Apply static behavior to completely lock the dashboard when not editing
+    const currentLayouts = useMemo(() => {
+        const result = {};
+        for (const [bp, l] of Object.entries(layouts)) {
+            result[bp] = (l || []).map(item => ({ ...item, static: !isEditing }));
+        }
+        return result;
+    }, [layouts, isEditing]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -286,7 +295,7 @@ const DashboardPage = () => {
                     <ResponsiveGridLayout
                         className="layout"
                         width={gridWidth}
-                        layouts={layouts}
+                        layouts={currentLayouts}
                         breakpoints={{ lg: 768, md: 480, sm: 0 }}
                         cols={{ lg: 12, md: 12, sm: 6 }}
                         rowHeight={40}
