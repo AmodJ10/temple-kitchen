@@ -18,7 +18,7 @@ const useAuthStore = create((set, get) => ({
     checkAuth: async () => {
         try {
             const res = await authAPI.getMe();
-            set({ user: res.data.data, isAuthenticated: true, isCheckingAuth: false });
+            set({ user: res.data.data.user, isAuthenticated: true, isCheckingAuth: false });
             // Connect socket after successful auth
             connectSocket();
         } catch (error) {

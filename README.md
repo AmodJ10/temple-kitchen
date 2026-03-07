@@ -1,4 +1,4 @@
-# 🙏 Temple Kitchen — Seva Management System
+# 🙏 MSM Kitchen — Seva Management System
 
 A full-stack web application for managing temple kitchen operations: event planning, dish management, vendor procurement, volunteer attendance, inventory tracking, meetings, tasks, and reporting.
 

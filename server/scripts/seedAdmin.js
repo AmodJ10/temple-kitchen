@@ -38,11 +38,11 @@ const seedAdmin = async () => {
 
         // Seed engineer user
         await User.findOneAndUpdate(
-            { email: 'engineer@temple.org' },
-            { name: 'Lead Engineer', email: 'engineer@temple.org', passwordHash, role: 'engineer' },
+            { email: 'engineer@msm.org' },
+            { name: 'Lead Engineer', email: 'engineer@msm.org', passwordHash, role: 'engineer' },
             { upsert: true, new: true }
         );
-        console.log('✅ Engineer user created/updated: engineer@temple.org / admin123');
+        console.log('✅ Engineer user created/updated: engineer@msm.org / admin123');
 
     } catch (error) {
         console.error('❌ Error seeding:', error);

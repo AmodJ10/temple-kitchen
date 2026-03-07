@@ -22,12 +22,12 @@ const SevekariForm = ({ onSubmit, loading, initial, onClose }) => {
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-4">
-            <Input label="Full Name *" placeholder="Enter name" value={form.name} onChange={handleChange('name')} required />
+            <Input label="Full Name *" value={form.name} onChange={handleChange('name')} required />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input label="Phone" placeholder="+91 98xxx xxxxx" value={form.phone} onChange={handleChange('phone')} />
-                <Input label="Email" type="email" placeholder="email@example.com" value={form.email} onChange={handleChange('email')} />
+                <Input label="Phone" value={form.phone} onChange={handleChange('phone')} />
+                <Input label="Email" type="email" value={form.email} onChange={handleChange('email')} />
             </div>
-            <Input label="Address" placeholder="Full address" value={form.address} onChange={handleChange('address')} />
+            <Input label="Address" value={form.address} onChange={handleChange('address')} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Join Date" type="date" value={form.joinDate?.split('T')[0] || ''} onChange={handleChange('joinDate')} />
                 <div className="flex items-center gap-3 pt-6">
@@ -39,7 +39,7 @@ const SevekariForm = ({ onSubmit, loading, initial, onClose }) => {
                 <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Notes</label>
                 <textarea value={form.notes} onChange={handleChange('notes')} rows={2}
                     className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-                    placeholder="Any additional notes..." />
+                />
             </div>
             <div className="flex justify-end gap-3 pt-2">
                 <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
@@ -104,7 +104,7 @@ const MasterSevekariPage = () => {
         <div className="page-container space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Sevekaris</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Sevekaris</h1>
                     <p className="text-[var(--color-text-muted)] text-sm mt-1">Master database of all volunteers</p>
                 </div>
                 <Button onClick={() => { setEditing(null); setShowForm(true); }}><Plus size={18} /> Add Sevekari</Button>
@@ -113,7 +113,7 @@ const MasterSevekariPage = () => {
             <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
-                    <input placeholder="Search by name or phone..." value={search} onChange={(e) => setSearch(e.target.value)}
+                    <input value={search} onChange={(e) => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" />
                 </div>
                 <div className="flex gap-2">
@@ -131,7 +131,7 @@ const MasterSevekariPage = () => {
             ) : items.length === 0 ? (
                 <EmptyState title="No sevekaris found" description="Add your first volunteer to get started" />
             ) : (
-                <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]">
+                <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="bg-[var(--color-bg-secondary)]">
@@ -149,7 +149,7 @@ const MasterSevekariPage = () => {
                                     className="border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors">
                                     <td className="py-3 px-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-accent)] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                            <div className="w-8 h-8 rounded-md bg-[var(--color-primary)] flex items-center justify-center text-white text-xs font-bold shrink-0">
                                                 {item.name?.charAt(0)?.toUpperCase()}
                                             </div>
                                             <span className="font-medium text-[var(--color-text-primary)]">{item.name}</span>

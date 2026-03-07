@@ -17,14 +17,14 @@ import Card from '../components/ui/Card';
 
 const InventoryForm = ({ onSubmit, loading, initial, onClose }) => {
     const [form, setForm] = useState(initial || {
-        name: '', unit: 'kg', currentStock: 0, minimumStockAlert: 0, location: '', category: '', notes: '',
+        name: '', unit: 'kg', currentStock: '', minimumStockAlert: '', location: '', category: '', notes: '',
     });
     useEffect(() => { if (initial) setForm(initial); }, [initial]);
     const handleChange = (field) => (e) => setForm({ ...form, [field]: e.target.type === 'number' ? Number(e.target.value) : e.target.value });
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-4">
-            <Input label="Item Name *" placeholder="e.g. Rice, Sugar" value={form.name} onChange={handleChange('name')} required />
+            <Input label="Item Name *" value={form.name} onChange={handleChange('name')} required />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Select label="Unit *" value={form.unit} onChange={handleChange('unit')} options={[{ value: '', label: 'Select unit' }, ...UNIT_OPTIONS]} required />
                 <Input label="Current Stock" type="number" min={0} value={form.currentStock} onChange={handleChange('currentStock')} />
@@ -32,8 +32,8 @@ const InventoryForm = ({ onSubmit, loading, initial, onClose }) => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select label="Category" value={form.category} onChange={handleChange('category')}
-                    options={INVENTORY_CATEGORIES.map(c => ({ value: c, label: c }))} placeholder="Select category" />
-                <Input label="Storage Location" placeholder="e.g. Store Room A" value={form.location} onChange={handleChange('location')} />
+                    options={INVENTORY_CATEGORIES.map(c => ({ value: c, label: c }))} />
+                <Input label="Storage Location" value={form.location} onChange={handleChange('location')} />
             </div>
             <div>
                 <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Notes</label>
@@ -60,7 +60,7 @@ const StockAdjustForm = ({ item, onSubmit, loading, onClose }) => {
             <Select label="Adjustment Type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
                 options={[{ value: 'addition', label: 'Add Stock' }, { value: 'deduction', label: 'Deduct Stock' }, { value: 'adjustment', label: 'Set New Level' }]} />
             <Input label="Quantity" type="number" min={0} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} required />
-            <Input label="Reason / Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Reason for adjustment" />
+            <Input label="Reason / Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             <div className="flex justify-end gap-3 pt-2">
                 <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
                 <Button type="submit" loading={loading}>Adjust Stock</Button>
@@ -127,7 +127,7 @@ const MasterInventoryPage = () => {
         <div className="page-container space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Inventory</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Inventory</h1>
                     <p className="text-[var(--color-text-muted)] text-sm mt-1">Master inventory with stock tracking</p>
                 </div>
                 <Button onClick={() => { setEditing(null); setShowForm(true); }}><Plus size={18} /> Add Item</Button>
@@ -136,11 +136,11 @@ const MasterInventoryPage = () => {
             <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
-                    <input placeholder="Search items..." value={search} onChange={(e) => setSearch(e.target.value)}
+                    <input value={search} onChange={(e) => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" />
                 </div>
                 <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}
-                    placeholder="All Categories" options={INVENTORY_CATEGORIES.map(c => ({ value: c, label: c }))} />
+                    options={INVENTORY_CATEGORIES.map(c => ({ value: c, label: c }))} />
             </div>
 
             {loading ? (
@@ -148,7 +148,7 @@ const MasterInventoryPage = () => {
             ) : items.length === 0 ? (
                 <EmptyState title="No inventory items" description="Add ingredients and supplies to track stock" />
             ) : (
-                <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]">
+                <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="bg-[var(--color-bg-secondary)]">

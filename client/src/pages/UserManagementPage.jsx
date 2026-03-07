@@ -26,10 +26,10 @@ const RegisterForm = ({ onSubmit, loading, onClose }) => {
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-4">
-            <Input label="Full Name" value={form.name} onChange={handleChange('name')} required placeholder="e.g. John Doe" />
-            <Input label="Email" type="email" value={form.email} onChange={handleChange('email')} required placeholder="e.g. user@temple.org" />
+            <Input label="Full Name" value={form.name} onChange={handleChange('name')} required />
+            <Input label="Email" type="email" value={form.email} onChange={handleChange('email')} required />
             <Input label="Password" type="password" value={form.password} onChange={handleChange('password')} required
-                placeholder="Min 6 characters" minLength={6} />
+                minLength={6} />
             <Select label="Role" value={form.role} onChange={handleChange('role')}
                 options={[
                     { value: 'user', label: 'User (Read Only)' },
@@ -103,7 +103,7 @@ const UserManagementPage = () => {
         <div className="page-container space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">User Management</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">User Management</h1>
                     <p className="text-[var(--color-text-muted)] text-sm mt-1">Manage user accounts and roles</p>
                 </div>
                 <Button onClick={() => setShowRegister(true)}><UserPlus size={18} /> Add User</Button>
@@ -131,7 +131,7 @@ const UserManagementPage = () => {
             {/* Search */}
             <div className="relative max-w-md">
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
-                <input placeholder="Search by name or email..." value={search} onChange={(e) => setSearch(e.target.value)}
+                <input value={search} onChange={(e) => setSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" />
             </div>
 
@@ -141,7 +141,7 @@ const UserManagementPage = () => {
             ) : filtered.length === 0 ? (
                 <EmptyState title="No users found" description={search ? 'Try a different search' : 'Register the first user'} />
             ) : (
-                <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]">
+                <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="bg-[var(--color-bg-secondary)]">
@@ -179,7 +179,7 @@ const UserManagementPage = () => {
                                             </td>
                                             <td className="py-3 px-4 text-[var(--color-text-muted)]">{user.email}</td>
                                             <td className="py-3 px-4">
-                                                {isSelf ? (
+                                                {isSelf || (currentUser?.role === 'admin' && (user.role === 'engineer' || user.role === 'admin')) ? (
                                                     <Badge color={roleCfg.color}>
                                                         <RoleIcon size={12} className="mr-1" /> {roleCfg.label}
                                                     </Badge>
@@ -196,7 +196,8 @@ const UserManagementPage = () => {
                                                 )}
                                             </td>
                                             <td className="py-3 px-4 text-right">
-                                                {!isSelf && (
+                                                {/* Hide delete button if current user is not engineer and target is engineer */}
+                                                {!isSelf && !(currentUser?.role !== 'engineer' && user.role === 'engineer') && (
                                                     <button
                                                         onClick={() => setDeleteTarget(user)}
                                                         className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-red-400 hover:text-red-500 transition-colors"

@@ -88,7 +88,7 @@ const EventDetailPage = () => {
                 </button>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>
-                        <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">{event.name}</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">{event.name}</h1>
                         <div className="flex items-center gap-3 mt-2">
                             <Badge color={typeInfo?.color}>{typeInfo?.label}</Badge>
                             <Badge color={statusInfo?.color}>{statusInfo?.label}</Badge>

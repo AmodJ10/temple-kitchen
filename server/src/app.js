@@ -40,10 +40,19 @@ app.use(cookieParser());
 
 // ─── Health Check ────────────────────────────────────────────────
 app.get('/api/v1/health', (_req, res) => {
-    res.json({ success: true, message: 'Temple Kitchen API is running 🙏', timestamp: new Date().toISOString() });
+    res.json({ success: true, message: 'MSM Kitchen API is running 🙏', timestamp: new Date().toISOString() });
 });
 
 // ─── API Routes ──────────────────────────────────────────────────
+// Prevent browsers and CDN from caching API responses (avoids sticky sessions or returning wrong user on refresh)
+app.use('/api', (req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Surrogate-Control', 'no-store');
+    next();
+});
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/sevekaris', sevekariRoutes);
 app.use('/api/v1/inventory', inventoryRoutes);

@@ -172,7 +172,7 @@ const TaskForm = ({ event, initial, onSubmit, onCancel, loading }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
                     label="Assigned To (Sevekari)"
-                    value={form.assignedTo}
+                    value={form.assignedTo || ''}
                     onChange={(e) => handleChange('assignedTo', e.target.value)}
                     options={[{ value: '', label: 'Unassigned' }, ...sevekaris.map(s => ({ value: s._id, label: s.name }))]}
                 />
@@ -223,7 +223,7 @@ const TaskForm = ({ event, initial, onSubmit, onCancel, loading }) => {
                     value={form.howTo}
                     onChange={(e) => handleChange('howTo', e.target.value)}
                     rows={3}
-                    placeholder="Provide specific instructions for the sevekari..."
+
                     className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
                 />
             </div>

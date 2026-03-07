@@ -76,7 +76,7 @@ class ErrorBoundary extends React.Component {
                 <div className="flex items-center justify-center min-h-[50vh]">
                     <div className="text-center">
                         <p className="text-6xl mb-4">🙏</p>
-                        <h2 className="font-display text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                        <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
                             Something went wrong
                         </h2>
                         <p className="text-[var(--color-text-muted)] mb-4">Please refresh the page and try again.</p>

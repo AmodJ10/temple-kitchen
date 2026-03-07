@@ -100,7 +100,7 @@ const InventoryUsedForm = ({ event, selectedDayId, initial, onSubmit, onCancel, 
 
                 <Input
                     label="Source Location / Store"
-                    placeholder="e.g. Main Godown, Kitchen Shelf"
+
                     value={form.sourceLocation}
                     onChange={(e) => handleChange('sourceLocation', e.target.value)}
                 />
@@ -112,7 +112,7 @@ const InventoryUsedForm = ({ event, selectedDayId, initial, onSubmit, onCancel, 
                         onChange={(e) => handleChange('notes', e.target.value)}
                         rows={2}
                         className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-                        placeholder="Why was this used?..."
+
                     />
                 </div>
             </div>
@@ -248,7 +248,7 @@ const InventoryUsedTab = ({ event, selectedDayId }) => {
                                     </Badge>
                                 </div>
 
-                                <p className="text-2xl font-display font-medium text-[var(--color-primary)] mb-2">
+                                <p className="text-2xl font-medium text-[var(--color-primary)] mb-2">
                                     -{record.quantityUsed} <span className="text-sm text-[var(--color-text-muted)]">{record.unit}</span>
                                 </p>
 

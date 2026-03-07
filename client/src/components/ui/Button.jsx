@@ -2,35 +2,37 @@ import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 
 const variants = {
-    primary: 'bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white',
-    secondary: 'bg-transparent border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-bg-secondary)]',
-    danger: 'bg-red-500 hover:bg-red-600 text-white',
-    ghost: 'bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]',
-    success: 'bg-[var(--color-secondary)] hover:bg-[var(--color-secondary-dark)] text-white',
+    primary: 'bg-[#F5F4F0] text-[#161616] hover:bg-[#E8E7E3] dark:bg-[#F5F4F0] dark:text-[#161616] dark:hover:bg-[#E8E7E3]',
+    secondary: 'bg-transparent border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]',
+    danger: 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20',
+    ghost: 'bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]',
+    success: 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20',
 };
 
 const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
+    sm: 'px-3 py-1.5 text-xs',
     md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+    lg: 'px-5 py-2.5 text-sm',
 };
 
 const Button = forwardRef(({ variant = 'primary', size = 'md', children, className = '', disabled, loading, ...props }, ref) => {
     return (
         <motion.button
             ref={ref}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.1 }}
             className={`
-        inline-flex items-center justify-center gap-2 font-medium rounded-xl
-        transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${variants[variant]} ${sizes[size]} ${className}
-      `}
+                inline-flex items-center justify-center gap-2 font-medium rounded-lg
+                transition-all duration-150 ease-out
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]
+                disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none
+                ${variants[variant]} ${sizes[size]} ${className}
+            `}
             disabled={disabled || loading}
             {...props}
         >
             {loading && (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>

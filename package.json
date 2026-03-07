@@ -2,7 +2,7 @@
   "name": "temple-kitchen-app",
   "version": "1.0.0",
   "private": true,
-  "description": "Temple Kitchen Department — Full-Stack Management Application",
+  "description": "MSM Kitchen Department — Full-Stack Management Application",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && npm run dev",

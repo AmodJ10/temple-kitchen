@@ -21,18 +21,23 @@ export const updateRole = asyncHandler(async (req, res) => {
         throw ApiError.badRequest('You cannot change your own role');
     }
 
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser) throw ApiError.notFound('User not found');
+
+    // Admins cannot alter other admins or engineers
+    if (req.user.role === 'admin' && (targetUser.role === 'engineer' || targetUser.role === 'admin')) {
+        throw ApiError.forbidden('Admins cannot change the role of engineers or other admins');
+    }
+
     // Only engineers can assign engineer role
     if (role === 'engineer' && req.user.role !== 'engineer') {
         throw ApiError.forbidden('Only engineers can assign the engineer role');
     }
 
-    const user = await User.findByIdAndUpdate(
-        req.params.id,
-        { role },
-        { new: true, runValidators: true }
-    ).select('-passwordHash');
+    targetUser.role = role;
+    await targetUser.save();
 
-    if (!user) throw ApiError.notFound('User not found');
+    const user = await User.findById(req.params.id).select('-passwordHash');
 
     ApiResponse.success(res, 'Role updated', user);
 });
@@ -43,8 +48,15 @@ export const remove = asyncHandler(async (req, res) => {
         throw ApiError.badRequest('You cannot delete your own account');
     }
 
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) throw ApiError.notFound('User not found');
+    const userToDelete = await User.findById(req.params.id);
+    if (!userToDelete) throw ApiError.notFound('User not found');
+
+    // Only engineers can delete engineers
+    if (userToDelete.role === 'engineer' && req.user.role !== 'engineer') {
+        throw ApiError.forbidden('Admins cannot delete engineers. Only an engineer can delete another engineer.');
+    }
+
+    await userToDelete.deleteOne();
 
     ApiResponse.success(res, 'User deleted', { _id: user._id });
 });

@@ -18,13 +18,13 @@ const VendorForm = ({ onSubmit, loading, initial, onClose }) => {
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-4">
-            <Input label="Vendor Name *" placeholder="e.g. Krishna Traders" value={form.name} onChange={handleChange('name')} required />
+            <Input label="Vendor Name *" value={form.name} onChange={handleChange('name')} required />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input label="Contact Number" placeholder="+91 98xxx xxxxx" value={form.contactNo} onChange={handleChange('contactNo')} />
-                <Input label="Email" type="email" placeholder="vendor@email.com" value={form.email} onChange={handleChange('email')} />
+                <Input label="Contact Number" value={form.contactNo} onChange={handleChange('contactNo')} />
+                <Input label="Email" type="email" value={form.email} onChange={handleChange('email')} />
             </div>
-            <Input label="Address" placeholder="Full address" value={form.address} onChange={handleChange('address')} />
-            <Input label="Category" placeholder="e.g. Groceries, Dairy, Spices" value={form.category} onChange={handleChange('category')} />
+            <Input label="Address" value={form.address} onChange={handleChange('address')} />
+            <Input label="Category" value={form.category} onChange={handleChange('category')} />
             <div>
                 <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Notes</label>
                 <textarea value={form.notes} onChange={handleChange('notes')} rows={2}
@@ -82,7 +82,7 @@ const VendorsPage = () => {
         <div className="page-container space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Vendors</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Vendors</h1>
                     <p className="text-[var(--color-text-muted)] text-sm mt-1">Manage your supplier database</p>
                 </div>
                 <Button onClick={() => { setEditing(null); setShowForm(true); }}><Plus size={18} /> Add Vendor</Button>
@@ -90,7 +90,7 @@ const VendorsPage = () => {
 
             <div className="relative">
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
-                <input placeholder="Search vendors..." value={search} onChange={(e) => setSearch(e.target.value)}
+                <input value={search} onChange={(e) => setSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" />
             </div>
 
@@ -106,7 +106,7 @@ const VendorsPage = () => {
                         <motion.div key={item._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                             <Card hoverable className="p-5">
                                 <div className="flex items-start justify-between mb-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-secondary)] to-[var(--color-secondary-light)] flex items-center justify-center text-white font-bold">
+                                    <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)] flex items-center justify-center text-white font-bold">
                                         {item.name?.charAt(0)?.toUpperCase()}
                                     </div>
                                     <div className="flex gap-1">

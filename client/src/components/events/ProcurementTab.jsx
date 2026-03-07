@@ -24,7 +24,7 @@ const ProcurementForm = ({ event, selectedDayId, initial, onSubmit, onCancel, lo
     const [vendors, setVendors] = useState([]);
     const [form, setForm] = useState(initial || {
         vendorId: '', vendorName: '', vendorContact: '',
-        items: [], grandTotal: 0, paymentStatus: 'pending', amountPaid: 0, notes: ''
+        items: [], grandTotal: '', paymentStatus: 'pending', amountPaid: '', notes: ''
     });
 
     useEffect(() => {
@@ -46,7 +46,7 @@ const ProcurementForm = ({ event, selectedDayId, initial, onSubmit, onCancel, lo
     const handleAddItem = () => {
         setForm(prev => ({
             ...prev,
-            items: [...prev.items, { name: '', quantity: '', unit: '', ratePerUnit: '', totalPrice: 0 }]
+            items: [...prev.items, { name: '', quantity: '', unit: '', ratePerUnit: '', totalPrice: '' }]
         }));
     };
 
@@ -361,7 +361,7 @@ const ProcurementTab = ({ event, selectedDayId }) => {
                                             <Badge color={statusInfo?.color}>{statusInfo?.label}</Badge>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xl font-display font-medium text-[var(--color-text-primary)]">{formatCurrency(record.grandTotal)}</p>
+                                            <p className="text-xl font-medium text-[var(--color-text-primary)]">{formatCurrency(record.grandTotal)}</p>
                                             <p className="text-xs text-[var(--color-text-muted)]">Paid: {formatCurrency(record.amountPaid)}</p>
                                         </div>
                                     </div>

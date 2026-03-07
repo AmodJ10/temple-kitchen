@@ -2,10 +2,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { WifiOff } from 'lucide-react';
 import useOnlineStatus from '../../hooks/useOnlineStatus';
 
-/**
- * A slim banner that slides down from the top when the browser goes offline.
- * Automatically disappears when connectivity is restored.
- */
 const OfflineBanner = () => {
     const isOnline = useOnlineStatus();
 
@@ -13,13 +9,13 @@ const OfflineBanner = () => {
         <AnimatePresence>
             {!isOnline && (
                 <motion.div
-                    initial={{ y: -50, opacity: 0 }}
+                    initial={{ y: -40, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -50, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
-                    className="fixed top-0 left-0 right-0 z-[999] bg-red-600 text-white text-center py-2 px-4 text-sm font-medium flex items-center justify-center gap-2 shadow-lg"
+                    exit={{ y: -40, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="fixed top-0 left-0 right-0 z-[999] bg-red-500/90 backdrop-blur-sm text-white text-center py-2 px-4 text-xs font-medium flex items-center justify-center gap-2"
                 >
-                    <WifiOff size={16} />
+                    <WifiOff size={14} />
                     You are offline. Some features may be unavailable.
                 </motion.div>
             )}

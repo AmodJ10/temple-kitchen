@@ -29,7 +29,7 @@ const startServer = async () => {
         initSocket(httpServer);
 
         httpServer.listen(PORT, () => {
-            console.log(`🚀 Temple Kitchen Server running on port ${PORT}`);
+            console.log(`🚀 MSM Kitchen Server running on port ${PORT}`);
             console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
         });
     } catch (error) {

@@ -5,221 +5,188 @@ import { dishAPI, procurementAPI, attendanceAPI, inventoryUsedAPI, meetingAPI, t
 import { formatDate, formatCurrency } from '../../utils/formatters';
 import { EVENT_TYPES } from '../../utils/constants';
 import Card from '../ui/Card';
+import Button from '../ui/Button';
 
 // ==========================================
-// STEP 1 — FONT REGISTRATION
-// Using stable Google Fonts TTF URLs (woff2 hashes change and break)
+// FONT — Helvetica is built-in (Arial equivalent)
 // ==========================================
-Font.register({
-    family: 'Nunito',
-    fonts: [
-        { src: 'https://cdn.jsdelivr.net/fontsource/fonts/nunito@latest/latin-400-normal.ttf', fontWeight: 400 },
-        { src: 'https://cdn.jsdelivr.net/fontsource/fonts/nunito@latest/latin-600-normal.ttf', fontWeight: 600 },
-        { src: 'https://cdn.jsdelivr.net/fontsource/fonts/nunito@latest/latin-700-normal.ttf', fontWeight: 700 },
-    ]
-});
 
 // ==========================================
-// STEP 2 — COLOR PALETTE
+// COLOR PALETTE (from guide)
 // ==========================================
-const COLORS = {
-    primary: '#E8621A',
-    primaryDark: '#C24E0D',
-    primaryLight: '#FFF5E8',
-    accent: '#3D8B37',
-    accentLight: '#EAF4E9',
-    highlight: '#F5C842',
+const C = {
+    navy: '#1A1A2E',
+    lightBg: '#E8EAF0',
+    rowAlt: '#F5F5F8',
     white: '#FFFFFF',
-    rowAlt: '#F9F6F1',
-    border: '#E8D5B7',
-    textPrimary: '#1A1208',
-    textSecondary: '#5C4A2A',
-    textMuted: '#9C8060',
-    footerBg: '#2A1F0E',
+    body: '#333333',
+    muted: '#666666',
+    border: '#CCCCCC',
 };
 
 // ==========================================
-// STEP 3 — STYLESHEET
+// STYLESHEET
 // ==========================================
-const styles = StyleSheet.create({
-    // Page
-    page: { fontFamily: 'Nunito', backgroundColor: COLORS.white, paddingTop: 100, paddingBottom: 60, paddingHorizontal: 40 },
+const s = StyleSheet.create({
+    // ── Page ──
+    page: {
+        fontFamily: 'Helvetica',
+        fontSize: 10,
+        color: C.body,
+        paddingTop: 72,
+        paddingBottom: 50,
+        paddingHorizontal: 72, // 1-inch margins
+    },
 
-    // Cover
-    coverPage: { backgroundColor: COLORS.primary, padding: 0 },
-    coverAccentStrip: { height: 8, backgroundColor: COLORS.highlight },
-    coverTitle: { fontSize: 32, fontWeight: 700, color: COLORS.white, marginTop: 60, marginHorizontal: 40 },
-    coverSubtitle: { fontSize: 14, fontWeight: 400, color: COLORS.primaryLight, marginTop: 8, marginHorizontal: 40 },
-    coverDate: { fontSize: 11, color: COLORS.primaryLight, marginTop: 4, marginHorizontal: 40 },
-    coverBottomStrip: { height: 12, backgroundColor: COLORS.primaryDark, position: 'absolute', bottom: 0, left: 0, right: 0 },
-    coverMetaContainer: { position: 'absolute', bottom: 40, left: 40 },
-    coverMetaLabel: { fontSize: 10, color: COLORS.primaryLight },
-    coverMetaValue: { fontSize: 12, color: COLORS.white, fontWeight: 700 },
+    // ── Cover ──
+    coverPage: {
+        fontFamily: 'Helvetica',
+        backgroundColor: C.navy,
+        padding: 72,
+        justifyContent: 'space-between',
+    },
+    coverTitle: { fontSize: 24, fontFamily: 'Helvetica-Bold', color: C.white, marginBottom: 8 },
+    coverSubtitle: { fontSize: 14, color: '#B0B0C0', marginBottom: 4 },
+    coverDate: { fontSize: 11, color: '#8888A0' },
+    coverBottom: { marginTop: 'auto' },
+    coverMetaLabel: { fontSize: 9, color: '#8888A0', marginBottom: 2 },
+    coverMetaValue: { fontSize: 11, color: C.white, fontFamily: 'Helvetica-Bold' },
 
-    // Header (fixed)
-    header: { position: 'absolute', top: 0, left: 0, right: 0, height: 70, backgroundColor: COLORS.primary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 40, justifyContent: 'space-between' },
-    headerTitle: { fontSize: 11, fontWeight: 700, color: COLORS.white, letterSpacing: 1 },
-    headerPageNum: { fontSize: 10, color: COLORS.primaryLight },
+    // ── Header / Footer ──
+    footer: {
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        height: 30, alignItems: 'center', justifyContent: 'center',
+    },
+    footerText: { fontSize: 8, color: C.muted },
 
-    // Footer (fixed)
-    footer: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 36, backgroundColor: COLORS.footerBg, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 40, justifyContent: 'space-between' },
-    footerText: { fontSize: 8, color: COLORS.primaryLight },
+    // ── Sections ──
+    sectionTitle: {
+        fontSize: 14, fontFamily: 'Helvetica-Bold', color: C.navy,
+        marginTop: 4, marginBottom: 4, paddingBottom: 6,
+        borderBottomWidth: 2, borderBottomColor: C.navy,
+    },
+    subTitle: {
+        fontSize: 11, fontFamily: 'Helvetica-Bold', color: C.navy,
+        marginTop: 14, marginBottom: 6,
+    },
 
-    // Section
-    sectionHeader: { backgroundColor: COLORS.primaryLight, borderLeftWidth: 4, borderLeftColor: COLORS.primary, paddingVertical: 8, paddingHorizontal: 12, marginBottom: 12, marginTop: 20 },
-    sectionTitle: { fontSize: 13, fontWeight: 700, color: COLORS.primary },
+    // ── Key-Value Table (2-col) ──
+    kvRow: {
+        flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: C.border,
+    },
+    kvRowAlt: { backgroundColor: C.rowAlt },
+    kvLabel: {
+        width: '40%', paddingVertical: 6, paddingHorizontal: 10,
+        fontSize: 10, fontFamily: 'Helvetica-Bold', color: C.body,
+    },
+    kvValue: {
+        width: '60%', paddingVertical: 6, paddingHorizontal: 10,
+        fontSize: 10, color: C.body,
+    },
+    kvHeader: {
+        flexDirection: 'row', backgroundColor: C.navy, paddingVertical: 6, paddingHorizontal: 10,
+    },
+    kvHeaderText: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.white },
 
-    // Metric Cards
-    metricsRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-    metricCard: { flex: 1, backgroundColor: COLORS.rowAlt, borderRadius: 6, padding: 12, borderLeftWidth: 3, borderLeftColor: COLORS.primary },
-    metricValue: { fontSize: 22, fontWeight: 700, color: COLORS.primary },
-    metricLabel: { fontSize: 9, color: COLORS.textMuted, marginTop: 2 },
-
-    // Dynamic Metric Card Styles (to avoid inline objects)
-    metricCardAccent: { borderLeftColor: COLORS.accent },
-    metricValueAccent: { color: COLORS.accent },
-    metricCardPrimaryDark: { borderLeftColor: COLORS.primaryDark },
-    metricValuePrimaryDark: { color: COLORS.primaryDark },
-    metricCardHighlight: { borderLeftColor: COLORS.highlight },
-    metricValueHighlight: { color: COLORS.highlight },
-    metricCardTextMuted: { borderLeftColor: COLORS.textMuted },
-    metricValueTextMuted: { color: COLORS.textMuted },
-
-    // Table
-    tableWrapper: { marginBottom: 15 },
-    tableHeaderRow: { flexDirection: 'row', backgroundColor: COLORS.primary, paddingVertical: 8, paddingHorizontal: 10 },
-    tableHeaderCell: { fontSize: 9, fontWeight: 700, color: COLORS.white },
-    tableRow: { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-    tableRowAlt: { backgroundColor: COLORS.rowAlt },
-    tableCell: { fontSize: 9, color: COLORS.textPrimary },
+    // ── Tables ──
+    tableHeaderRow: {
+        flexDirection: 'row', backgroundColor: C.navy,
+        paddingVertical: 7, paddingHorizontal: 8,
+    },
+    tableHeaderCell: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.white },
+    tableRow: {
+        flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 8,
+        borderBottomWidth: 0.5, borderBottomColor: C.border,
+    },
+    tableRowAlt: { backgroundColor: C.rowAlt },
+    tableCell: { fontSize: 9, color: C.body },
     tableCellRight: { textAlign: 'right' },
-    tableTotalRow: { flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 10, backgroundColor: COLORS.primaryLight, borderTopWidth: 1.5, borderTopColor: COLORS.primary },
-    tableTotalCell: { fontSize: 9, fontWeight: 700, color: COLORS.primary, flex: 1 },
-    tableTotalCellRight: { fontSize: 9, fontWeight: 700, color: COLORS.primary, flex: 1, textAlign: 'right' },
+    tableTotalRow: {
+        flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 8,
+        backgroundColor: C.lightBg, borderTopWidth: 1, borderTopColor: C.navy,
+    },
+    tableTotalCell: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.navy },
 
-    // Table Flex Columns (to avoid inline objects for flex sizing)
+    // Flex helpers
     flex1: { flex: 1 },
     flex2: { flex: 2 },
     flex3: { flex: 3 },
 
-    // Divider
-    divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 14 },
+    // ── Misc ──
+    paragraph: { fontSize: 10, color: C.body, lineHeight: 1.5, marginBottom: 8 },
+    caption: { fontSize: 9, fontStyle: 'italic', color: C.muted, marginBottom: 8 },
+    spacer: { height: 12 },
+    divider: { height: 0.5, backgroundColor: C.border, marginVertical: 10 },
 
-    // Misc Content
-    paragraph: { fontSize: 10, color: COLORS.textSecondary, lineHeight: 1.5, marginBottom: 10 },
-    listItem: { fontSize: 10, color: COLORS.textSecondary, marginBottom: 5, paddingLeft: 10 },
-
-    // Dishes Section
-    dishWrapper: { marginBottom: 15 },
-    dishCard: { backgroundColor: COLORS.rowAlt, padding: 10, borderLeftWidth: 2, borderLeftColor: COLORS.primary },
-    dishTitle: { fontSize: 13, fontWeight: 700, color: COLORS.textPrimary },
-    dishCategory: { fontSize: 9, color: COLORS.textMuted, marginTop: 2 },
-    dishMetricsRow: { flexDirection: 'row', marginTop: 8 },
-    dishMetricCol: { flex: 1 },
-    dishMetricLabel: { fontSize: 8, color: COLORS.textMuted },
-    dishMetricValue: { fontSize: 10, fontWeight: 700, color: COLORS.textPrimary },
-    dishIngredientsWrapper: { marginTop: 5, paddingLeft: 10 },
-    dishIngredientsTitle: { fontSize: 9, fontWeight: 700, color: COLORS.textSecondary, marginBottom: 4 },
-    dishNote: { fontSize: 10, color: COLORS.textSecondary, lineHeight: 1.5, marginBottom: 10, marginTop: 5, paddingLeft: 10, fontStyle: 'italic' },
-
-    // MoM Section
-    momMeeting: { marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-    momTitle: { fontSize: 13, fontWeight: 700, color: COLORS.primaryDark },
-    momDate: { fontSize: 9, color: COLORS.textMuted, marginBottom: 5 },
-    momActionsWrapper: { marginTop: 8 },
-    momActionsTitle: { fontSize: 9, fontWeight: 700, color: COLORS.textSecondary, marginBottom: 4 }
+    // ── Metric Cards ──
+    metricsRow: { flexDirection: 'row', gap: 8, marginBottom: 12, marginTop: 8 },
+    metricCard: {
+        flex: 1, backgroundColor: C.lightBg, borderRadius: 4, padding: 10,
+        borderLeftWidth: 3, borderLeftColor: C.navy,
+    },
+    metricValue: { fontSize: 18, fontFamily: 'Helvetica-Bold', color: C.navy },
+    metricLabel: { fontSize: 8, color: C.muted, marginTop: 2 },
 });
 
 // ==========================================
-// STEP 4 — COMPONENTS TO BUILD
+// HELPER COMPONENTS
 // ==========================================
 
-const CoverPage = ({ title, eventName, date, generatedOn }) => (
-    <Page size="A4" style={styles.coverPage}>
-        <View style={styles.coverAccentStrip} />
-        <Text style={styles.coverTitle}>{title}</Text>
-        <Text style={styles.coverSubtitle}>{eventName}</Text>
-        <Text style={styles.coverDate}>{date}</Text>
-
-        <View style={styles.coverMetaContainer}>
-            <Text style={styles.coverMetaLabel}>Report Generated:</Text>
-            <Text style={styles.coverMetaValue}>{generatedOn}</Text>
-        </View>
-        <View style={styles.coverBottomStrip} />
-    </Page>
-);
-
-const ReportHeader = ({ title }) => (
-    <View style={styles.header} fixed>
-        <Text style={styles.headerTitle}>{title.toUpperCase()}</Text>
-        <Text style={styles.headerPageNum} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
-    </View>
-);
-
-const ReportFooter = ({ generatedOn }) => (
-    <View style={styles.footer} fixed>
-        <Text style={styles.footerText}>TEMPLE KITCHEN MANAGEMENT</Text>
-        <Text style={styles.footerText}>{generatedOn}</Text>
+const Footer = () => (
+    <View style={s.footer} fixed>
+        <Text style={s.footerText} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
     </View>
 );
 
 const SectionHeader = ({ title }) => (
-    <View style={styles.sectionHeader} wrap={false}>
-        <Text style={styles.sectionTitle}>{title.toUpperCase()}</Text>
-    </View>
+    <Text style={s.sectionTitle}>{title}</Text>
 );
 
-const MetricCard = ({ label, value, hexColorCode }) => {
-    // strict style matching to avoid inline hex objects
-    let cardStyle = styles.metricCard;
-    let textStyle = styles.metricValue;
+const SubHeader = ({ title }) => (
+    <Text style={s.subTitle}>{title}</Text>
+);
 
-    if (hexColorCode === COLORS.accent) { cardStyle = [styles.metricCard, styles.metricCardAccent]; textStyle = [styles.metricValue, styles.metricValueAccent]; }
-    else if (hexColorCode === COLORS.primaryDark) { cardStyle = [styles.metricCard, styles.metricCardPrimaryDark]; textStyle = [styles.metricValue, styles.metricValuePrimaryDark]; }
-    else if (hexColorCode === COLORS.highlight) { cardStyle = [styles.metricCard, styles.metricCardHighlight]; textStyle = [styles.metricValue, styles.metricValueHighlight]; }
-    else if (hexColorCode === COLORS.textMuted) { cardStyle = [styles.metricCard, styles.metricCardTextMuted]; textStyle = [styles.metricValue, styles.metricValueTextMuted]; }
-
-    return (
-        <View style={cardStyle}>
-            <Text style={textStyle}>{value}</Text>
-            <Text style={styles.metricLabel}>{label.toUpperCase()}</Text>
-        </View>
-    );
-};
-
-const MetricsRow = ({ metrics }) => (
-    <View style={styles.metricsRow}>
-        {metrics.map((m, i) => (
-            <MetricCard key={i} label={m.label} value={m.value} hexColorCode={m.color} />
+// Key-value table (2-col with navy header)
+const KVTable = ({ headerLabel, rows }) => (
+    <View style={{ marginBottom: 12 }}>
+        {headerLabel && (
+            <View style={s.kvHeader}>
+                <Text style={[s.kvHeaderText, { width: '40%' }]}>Field</Text>
+                <Text style={[s.kvHeaderText, { width: '60%' }]}>Details</Text>
+            </View>
+        )}
+        {rows.map((row, i) => (
+            <View key={i} style={[s.kvRow, i % 2 !== 0 ? s.kvRowAlt : {}]} wrap={false}>
+                <Text style={s.kvLabel}>{row.label}</Text>
+                <Text style={s.kvValue}>{row.value ?? '—'}</Text>
+            </View>
         ))}
     </View>
 );
 
-const StyledTable = ({ columns, rows, showTotal, totalLabel, totalValue }) => (
-    <View style={styles.tableWrapper}>
-        {/* Header */}
-        <View style={styles.tableHeaderRow} fixed>
+// Data table with navy header, alt rows, optional total
+const DataTable = ({ columns, rows, showTotal, totalLabel, totalValue }) => (
+    <View style={{ marginBottom: 12 }}>
+        <View style={s.tableHeaderRow} fixed>
             {columns.map((col, i) => (
                 <Text key={i} style={[
-                    styles.tableHeaderCell,
-                    col.flex === 2 ? styles.flex2 : (col.flex === 3 ? styles.flex3 : styles.flex1),
-                    col.align === 'right' ? styles.tableCellRight : {}
+                    s.tableHeaderCell,
+                    col.flex === 2 ? s.flex2 : (col.flex === 3 ? s.flex3 : s.flex1),
+                    col.align === 'right' ? s.tableCellRight : {}
                 ]}>
                     {col.label}
                 </Text>
             ))}
         </View>
-
-        {/* Rows */}
         {rows.map((row, i) => (
-            <View key={i} style={[styles.tableRow, i % 2 !== 0 ? styles.tableRowAlt : {}]} wrap={false}>
+            <View key={i} style={[s.tableRow, i % 2 !== 0 ? s.tableRowAlt : {}]} wrap={false}>
                 {columns.map((col, j) => {
                     const val = typeof col.key === 'function' ? col.key(row) : row[col.key];
                     return (
                         <Text key={j} style={[
-                            styles.tableCell,
-                            col.flex === 2 ? styles.flex2 : (col.flex === 3 ? styles.flex3 : styles.flex1),
-                            col.align === 'right' ? styles.tableCellRight : {}
+                            s.tableCell,
+                            col.flex === 2 ? s.flex2 : (col.flex === 3 ? s.flex3 : s.flex1),
+                            col.align === 'right' ? s.tableCellRight : {}
                         ]}>
                             {val !== undefined && val !== null ? String(val) : ''}
                         </Text>
@@ -227,30 +194,32 @@ const StyledTable = ({ columns, rows, showTotal, totalLabel, totalValue }) => (
                 })}
             </View>
         ))}
-
-        {/* Footer/Total */}
         {showTotal && (
-            <View style={styles.tableTotalRow} wrap={false}>
-                <Text style={styles.tableTotalCell}>{totalLabel || 'Total'}</Text>
-                <Text style={styles.tableTotalCellRight}>{totalValue}</Text>
+            <View style={s.tableTotalRow} wrap={false}>
+                <Text style={[s.tableTotalCell, s.flex1]}>{totalLabel || 'TOTAL'}</Text>
+                {columns.slice(1, -1).map((_, i) => <Text key={i} style={[s.tableTotalCell, s.flex1]}> </Text>)}
+                <Text style={[s.tableTotalCell, s.flex1, s.tableCellRight]}>{totalValue}</Text>
             </View>
         )}
     </View>
 );
 
-const Divider = () => <View style={styles.divider} />;
+const MetricCard = ({ label, value }) => (
+    <View style={s.metricCard}>
+        <Text style={s.metricValue}>{value}</Text>
+        <Text style={s.metricLabel}>{label.toUpperCase()}</Text>
+    </View>
+);
 
-const BodyPage = ({ children, headerTitle, generatedOn }) => (
-    <Page size="A4" style={styles.page}>
-        <ReportHeader title={headerTitle} />
+const BodyPage = ({ children }) => (
+    <Page size="A4" style={s.page}>
         {children}
-        <ReportFooter generatedOn={generatedOn} />
+        <Footer />
     </Page>
 );
 
-
 // ==========================================
-// STEP 5 — DOCUMENT ASSEMBLY
+// DOCUMENT ASSEMBLY
 // ==========================================
 
 const MyDocument = ({ event, data }) => {
@@ -258,196 +227,213 @@ const MyDocument = ({ event, data }) => {
     const typeInfo = EVENT_TYPES.find(t => t.value === event.type);
     const generatedOn = formatDate(new Date());
 
-    // Compute Metrics
-    const totalDishes = dishes.length;
+    // Compute metrics
     let totalExpenses = 0;
-    procurements.forEach(p => p.items.forEach(i => { totalExpenses += Number(i.totalPrice || 0) }));
-
-    // Plain computation — hooks cannot be used inside @react-pdf/renderer Document components
+    procurements.forEach(p => p.items.forEach(i => { totalExpenses += Number(i.totalPrice || 0); }));
     const uniqueSevekaris = new Set(attendance.map(a => a.sevekariName || (a.sevekariId && a.sevekariId._id)));
     const totalSevekaris = uniqueSevekaris.size;
-
-    const pendingTasks = tasks.filter(t => t.status !== 'completed').length;
+    const durationDays = event.endDate ? Math.max(1, Math.ceil((new Date(event.endDate) - new Date(event.startDate)) / (1000 * 60 * 60 * 24))) : 1;
 
     return (
         <Document>
-            <CoverPage
-                title="COMPREHENSIVE EVENT REPORT"
-                eventName={event.name}
-                date={`${formatDate(event.startDate)} ${event.endDate ? `— ${formatDate(event.endDate)}` : ''}`}
-                generatedOn={generatedOn}
-            />
+            {/* =============== COVER PAGE =============== */}
+            <Page size="A4" style={s.coverPage}>
+                <View>
+                    <Text style={s.coverTitle}>EVENT REPORT</Text>
+                    <Text style={s.coverSubtitle}>{event.name}</Text>
+                    <Text style={s.coverDate}>
+                        {formatDate(event.startDate)}{event.endDate ? ` — ${formatDate(event.endDate)}` : ''}
+                    </Text>
+                </View>
+                <View style={s.coverBottom}>
+                    <Text style={s.coverMetaLabel}>Event Type</Text>
+                    <Text style={s.coverMetaValue}>{typeInfo?.label || event.type}</Text>
+                    <View style={s.spacer} />
+                    <Text style={s.coverMetaLabel}>Expected Headcount</Text>
+                    <Text style={s.coverMetaValue}>{event.expectedHeadcount}</Text>
+                    <View style={s.spacer} />
+                    <Text style={s.coverMetaLabel}>Report Generated</Text>
+                    <Text style={s.coverMetaValue}>{generatedOn}</Text>
+                </View>
+            </Page>
 
-            {/* PAGE 2: Summary */}
-            <BodyPage headerTitle={`${event.name} — Summary Overview`} generatedOn={generatedOn}>
-                <SectionHeader title="Event Overview" />
-                <MetricsRow metrics={[
-                    { label: 'Expected Headcount', value: String(event.expectedHeadcount) },
+            {/* =============== 01 | EVENT OVERVIEW =============== */}
+            <BodyPage>
+                <SectionHeader title="01  |  Event Overview" />
+
+                <KVTable headerLabel rows={[
+                    { label: 'Event Name', value: event.name },
                     { label: 'Event Type', value: typeInfo?.label || event.type },
-                    { label: 'Status', value: event.status.toUpperCase() },
-                    { label: 'Duration (Days)', value: event.endDate ? String(Math.max(1, Math.ceil((new Date(event.endDate) - new Date(event.startDate)) / (1000 * 60 * 60 * 24)))) : '1' }
-                ]} />
-
-                <Divider />
-
-                <SectionHeader title="Operational Highlights" />
-                <MetricsRow metrics={[
-                    { label: 'Total Dishes', value: String(totalDishes), color: COLORS.accent },
-                    { label: 'Total Expenses', value: formatCurrency(totalExpenses), color: COLORS.primaryDark },
-                    { label: 'Unique Sevekaris', value: String(totalSevekaris), color: COLORS.highlight },
-                    { label: 'Pending Tasks', value: String(pendingTasks), color: COLORS.textMuted }
+                    { label: 'Date', value: `${formatDate(event.startDate)}${event.endDate ? ` — ${formatDate(event.endDate)}` : ''}` },
+                    { label: 'Duration', value: `${durationDays} day${durationDays > 1 ? 's' : ''}` },
+                    { label: 'Expected Headcount', value: String(event.expectedHeadcount) },
+                    { label: 'Status', value: event.status?.charAt(0).toUpperCase() + event.status?.slice(1) },
                 ]} />
 
                 {event.description ? (
                     <>
-                        <Divider />
-                        <SectionHeader title="Notes & Description" />
-                        <Text style={styles.paragraph}>{event.description}</Text>
+                        <SubHeader title="Notes & Description" />
+                        <Text style={s.paragraph}>{event.description}</Text>
                     </>
                 ) : null}
+
+                <SubHeader title="Operational Highlights" />
+                <View style={s.metricsRow}>
+                    <MetricCard label="Total Dishes" value={String(dishes.length)} />
+                    <MetricCard label="Total Expenses" value={formatCurrency(totalExpenses)} />
+                    <MetricCard label="Sevekaris" value={String(totalSevekaris)} />
+                </View>
             </BodyPage>
 
-            {/* PAGE 3: Menu & Dishes */}
+            {/* =============== 02 | DISHES & MENU =============== */}
             {dishes.length > 0 && (
-                <BodyPage headerTitle={`${event.name} — Menu & Food Production`} generatedOn={generatedOn}>
-                    <SectionHeader title="Approved Menu Roster" />
+                <BodyPage>
+                    <SectionHeader title="02  |  Dishes & Menu" />
+
+                    <SubHeader title="Menu Overview" />
+                    <DataTable
+                        columns={[
+                            { label: 'Dish Name', key: 'name', flex: 2 },
+                            { label: 'Category', key: (r) => r.type?.charAt(0).toUpperCase() + r.type?.slice(1), flex: 1 },
+                            { label: 'Headcount', key: (r) => String(r.headcount || '—'), flex: 1, align: 'right' },
+                        ]}
+                        rows={dishes}
+                    />
 
                     {dishes.map((dish, idx) => (
-                        <View key={idx} wrap={false} style={styles.dishWrapper}>
-                            <View style={styles.dishCard}>
-                                <Text style={styles.dishTitle}>{dish.name} {dish.type ? `(${dish.type.toUpperCase()})` : ''}</Text>
-                                <Text style={styles.dishCategory}>Category: {dish.type || 'N/A'}</Text>
+                        <View key={idx} wrap={false} style={{ marginBottom: 14 }}>
+                            <SubHeader title={`${dish.name} ${dish.type ? `(${dish.type.charAt(0).toUpperCase() + dish.type.slice(1)})` : ''}`} />
+                            <KVTable rows={[
+                                { label: 'Dish Name', value: dish.name },
+                                { label: 'Headcount', value: String(dish.headcount || '—') },
+                                { label: 'Total Yield', value: `${dish.totalYield?.amount || 0} ${dish.totalYield?.unit || ''}` },
+                                { label: 'Leftover Quantity', value: `${dish.leftover?.amount || 0} ${dish.leftover?.unit || ''}` },
+                            ]} />
 
-                                <View style={styles.dishMetricsRow}>
-                                    <View style={styles.dishMetricCol}>
-                                        <Text style={styles.dishMetricLabel}>Target Headcount</Text>
-                                        <Text style={styles.dishMetricValue}>{dish.headcount || 'N/A'}</Text>
-                                    </View>
-                                    <View style={styles.dishMetricCol}>
-                                        <Text style={styles.dishMetricLabel}>Planned Yield</Text>
-                                        <Text style={styles.dishMetricValue}>{dish.totalYield?.amount || 0} {dish.totalYield?.unit || dish.unit || ''}</Text>
-                                    </View>
-                                    <View style={styles.dishMetricCol}>
-                                        <Text style={styles.dishMetricLabel}>Leftover Log</Text>
-                                        <Text style={styles.dishMetricValue}>{dish.leftover?.amount || 0} {dish.leftover?.unit || dish.unit || ''}</Text>
-                                    </View>
-                                </View>
-                            </View>
-
-                            {/* Dish Ingredients Table */}
-                            {dish.ingredients && dish.ingredients.length > 0 ? (
-                                <View style={styles.dishIngredientsWrapper}>
-                                    <Text style={styles.dishIngredientsTitle}>Ingredient Specifications:</Text>
-                                    <StyledTable
+                            {dish.ingredients && dish.ingredients.length > 0 && (
+                                <>
+                                    <Text style={s.caption}>Ingredients:</Text>
+                                    <DataTable
                                         columns={[
-                                            { label: 'Ingredient Name', key: 'name', flex: 2 },
-                                            { label: 'Required Quantity', key: (r) => `${r.quantity} ${r.unit}`, flex: 1, align: 'right' }
+                                            { label: 'Ingredient', key: 'name', flex: 2 },
+                                            { label: 'Quantity', key: (r) => `${r.quantity} ${r.unit}`, flex: 1, align: 'right' },
                                         ]}
                                         rows={dish.ingredients}
                                     />
-                                </View>
-                            ) : null}
+                                </>
+                            )}
 
-                            {dish.notes ? (
-                                <Text style={styles.dishNote}>Note: {dish.notes}</Text>
-                            ) : null}
+                            {dish.notes ? <Text style={s.caption}>Note: {dish.notes}</Text> : null}
                         </View>
                     ))}
                 </BodyPage>
             )}
 
-            {/* PAGE 4: Procurement */}
+            {/* =============== 03 | PROCUREMENT SUMMARY =============== */}
             {procurements.length > 0 && (
-                <BodyPage headerTitle={`${event.name} — Procurement & Expenses`} generatedOn={generatedOn}>
-                    <SectionHeader title="Expenditure Ledger" />
-                    <StyledTable
+                <BodyPage>
+                    <SectionHeader title="03  |  Procurement Summary" />
+
+                    <DataTable
                         columns={[
-                            { label: 'Vendor / Supplier', key: (r) => r.vendorName || (r.vendorId && r.vendorId.name) || 'Unknown', flex: 2 },
-                            { label: 'Item Procured', key: 'itemName', flex: 2 },
-                            { label: 'Quantity', key: (r) => `${r.quantity} ${r.unit}`, flex: 1 },
-                            { label: 'Cost', key: (r) => formatCurrency(r.totalPrice), flex: 1, align: 'right' }
+                            { label: 'Item', key: 'name', flex: 2 },
+                            { label: 'Vendor', key: 'vendorName', flex: 2 },
+                            { label: 'Unit Price', key: (r) => formatCurrency(r.ratePerUnit || 0), flex: 1 },
+                            { label: 'Qty', key: (r) => `${r.quantity} ${r.unit}`, flex: 1 },
+                            { label: 'Total Cost', key: (r) => formatCurrency(r.totalPrice || 0), flex: 1, align: 'right' },
                         ]}
-                        rows={procurements.flatMap(p => p.items.map(item => ({ ...item, vendorName: p.vendorName, vendorId: p.vendorId })))}
-                        showTotal={true}
-                        totalLabel="Total Event Expenditures"
+                        rows={procurements.flatMap(p => p.items.map(item => ({
+                            ...item,
+                            vendorName: p.vendorName,
+                        })))}
+                        showTotal
+                        totalLabel="TOTAL"
                         totalValue={formatCurrency(totalExpenses)}
                     />
                 </BodyPage>
             )}
 
-            {/* PAGE 5: Inventory LOG */}
+            {/* =============== 04 | INVENTORY USAGE =============== */}
             {inventory.length > 0 && (
-                <BodyPage headerTitle={`${event.name} — Inventory Consumption`} generatedOn={generatedOn}>
-                    <SectionHeader title="Stock Deductions" />
-                    <StyledTable
+                <BodyPage>
+                    <SectionHeader title="04  |  Inventory Usage" />
+
+                    <DataTable
                         columns={[
-                            { label: 'Item Name', key: (r) => r.itemName || (r.inventoryItemId && r.inventoryItemId.name) || 'Unknown', flex: 2 },
-                            { label: 'Source Location', key: (r) => r.sourceLocation || 'Main Kitchen', flex: 2 },
-                            { label: 'Quantity Deducted', key: (r) => `${r.quantityUsed} ${r.unit}`, flex: 1, align: 'right' }
+                            { label: 'Item', key: (r) => r.itemName || (r.inventoryItemId && r.inventoryItemId.name) || 'Unknown', flex: 2 },
+                            { label: 'Quantity Taken', key: (r) => String(r.quantityUsed), flex: 1 },
+                            { label: 'Unit', key: 'unit', flex: 1 },
+                            { label: 'Reason / Notes', key: (r) => r.notes || r.sourceLocation || '—', flex: 2 },
                         ]}
                         rows={inventory}
                     />
                 </BodyPage>
             )}
 
-            {/* PAGE 6: Attendance */}
+            {/* =============== 05 | ATTENDANCE =============== */}
             {attendance.length > 0 && (
-                <BodyPage headerTitle={`${event.name} — Sevekari Attendance`} generatedOn={generatedOn}>
-                    <SectionHeader title="Volunteer Duty Log" />
-                    <StyledTable
+                <BodyPage>
+                    <SectionHeader title="05  |  Attendance" />
+
+                    <SubHeader title="Summary" />
+                    <KVTable headerLabel rows={[
+                        { label: 'Total Expected', value: String(event.expectedHeadcount) },
+                        { label: 'Total Present', value: String(attendance.length) },
+                        {
+                            label: 'Attendance Rate', value: event.expectedHeadcount > 0
+                                ? `${Math.round((attendance.length / event.expectedHeadcount) * 100)}%`
+                                : '—'
+                        },
+                    ]} />
+
+                    <SubHeader title="Attendance List" />
+                    <DataTable
                         columns={[
-                            { label: 'Sevekari Name', key: (r) => r.sevekariName || (r.sevekariId && r.sevekariId.name) || 'Unknown', flex: 2 },
-                            { label: 'Assigned Role', key: (r) => r.role || 'Volunteer', flex: 1 },
-                            { label: 'Shift Details', key: (r) => r.shift || 'Full Day', flex: 1 },
-                            { label: 'Current Status', key: (r) => String(r.status || 'Present'), flex: 1, align: 'right' }
+                            { label: '#', key: (r) => String(r._idx + 1), flex: 0.5 },
+                            { label: 'Name', key: (r) => r.sevekariName || (r.sevekariId && r.sevekariId.name) || 'Unknown', flex: 2 },
+                            { label: 'Role / Team', key: (r) => r.role || 'Volunteer', flex: 1 },
+                            { label: 'Status', key: (r) => r.status || 'Present', flex: 1, align: 'right' },
                         ]}
-                        rows={attendance}
+                        rows={attendance.map((a, i) => ({ ...a, _idx: i }))}
                     />
                 </BodyPage>
             )}
 
-            {/* PAGE 7: MoM & Tasks */}
-            {(meetings.length > 0 || tasks.length > 0) && (
-                <BodyPage headerTitle={`${event.name} — Meetings & Operations`} generatedOn={generatedOn}>
-                    {meetings.length > 0 && (
-                        <>
-                            <SectionHeader title="Minutes of Meetings" />
-                            {meetings.map((meeting, i) => (
-                                <View key={i} wrap={false} style={styles.momMeeting}>
-                                    <Text style={styles.momTitle}>{meeting.title}</Text>
-                                    <Text style={styles.momDate}>Date: {formatDate(meeting.date)}</Text>
+            {/* =============== 06 | MEETING NOTES =============== */}
+            {meetings.length > 0 && (
+                <BodyPage>
+                    <SectionHeader title="06  |  Meeting Notes" />
 
-                                    {meeting.notes ? <Text style={styles.paragraph}>{meeting.notes}</Text> : null}
+                    {meetings.map((meeting, i) => (
+                        <View key={i} wrap={false} style={{ marginBottom: 14 }}>
+                            <SubHeader title={meeting.title} />
+                            <KVTable rows={[
+                                { label: 'Date & Time', value: formatDate(meeting.date) },
+                                { label: 'Attendees', value: meeting.attendees?.join(', ') || '—' },
+                                { label: 'Key Discussions', value: meeting.discussions || meeting.agenda || '—' },
+                                { label: 'Decisions Made', value: meeting.decisions || '—' },
+                                { label: 'Action Items', value: meeting.actionables?.map(a => `• ${a.title} (${(a.assignedTo && a.assignedTo.name) || (typeof a.assignedTo === 'string' ? a.assignedTo : 'Unassigned')})`).join('\n') || '—' },
+                            ]} />
+                            {meeting.notes ? <Text style={s.caption}>Notes: {meeting.notes}</Text> : null}
+                        </View>
+                    ))}
+                </BodyPage>
+            )}
 
-                                    {meeting.actionables && meeting.actionables.length > 0 ? (
-                                        <View style={styles.momActionsWrapper}>
-                                            <Text style={styles.momActionsTitle}>Key Actionables:</Text>
-                                            {meeting.actionables.map((act, j) => (
-                                                <Text key={j} style={styles.listItem}>
-                                                    • {act.title} (Assignee: {(act.assignedTo && act.assignedTo.name) || (typeof act.assignedTo === 'string' ? act.assignedTo : 'Unassigned')})
-                                                </Text>
-                                            ))}
-                                        </View>
-                                    ) : null}
-                                </View>
-                            ))}
-                        </>
-                    )}
+            {/* =============== 07 | TASKS =============== */}
+            {tasks.length > 0 && (
+                <BodyPage>
+                    <SectionHeader title="07  |  Tasks Register" />
 
-                    {tasks.length > 0 && (
-                        <>
-                            <SectionHeader title="Operational Tasks Register" />
-                            <StyledTable
-                                columns={[
-                                    { label: 'Task Description', key: 'title', flex: 2 },
-                                    { label: 'Priority', key: (r) => String(r.priority).toUpperCase(), flex: 1 },
-                                    { label: 'Status', key: (r) => String(r.status).toUpperCase(), flex: 1 },
-                                    { label: 'Assignee', key: (r) => (r.assignedTo && r.assignedTo.name) || r.assignedToName || 'Unassigned', flex: 1, align: 'right' }
-                                ]}
-                                rows={tasks}
-                            />
-                        </>
-                    )}
+                    <DataTable
+                        columns={[
+                            { label: 'Task', key: 'title', flex: 3 },
+                            { label: 'Assignee', key: (r) => (r.assignedTo && r.assignedTo.name) || r.assignedToName || 'Unassigned', flex: 1 },
+                            { label: 'Priority', key: (r) => String(r.priority).toUpperCase(), flex: 1 },
+                            { label: 'Status', key: (r) => String(r.status).toUpperCase(), flex: 1, align: 'right' },
+                        ]}
+                        rows={tasks}
+                    />
                 </BodyPage>
             )}
         </Document>
@@ -456,7 +442,7 @@ const MyDocument = ({ event, data }) => {
 
 
 // ==========================================
-// STEP 6 — REACT APP INTEGRATION (ReportTab)
+// REACT COMPONENT (ReportTab)
 // ==========================================
 
 const ReportTab = ({ event }) => {
@@ -475,7 +461,7 @@ const ReportTab = ({ event }) => {
                     meetingAPI.getByEvent(event._id),
                     taskAPI.getByEvent(event._id)
                 ]);
-
+                console.log(procRes.data.data);
                 setReportData({
                     dishes: dishesRes.data.data || [],
                     procurements: procRes.data.data || [],
@@ -499,8 +485,8 @@ const ReportTab = ({ event }) => {
             <Card className="p-12">
                 <div className="flex flex-col items-center justify-center text-[var(--color-text-muted)]">
                     <Loader2 size={40} className="animate-spin mb-4 text-[var(--color-primary)]" />
-                    <p className="font-medium text-lg">Gathering Event Records...</p>
-                    <p className="text-sm mt-1">Please wait while we compile the multi-page report</p>
+                    <p className="font-medium text-lg">Compiling Report...</p>
+                    <p className="text-sm mt-1">Gathering event data across all sections</p>
                 </div>
             </Card>
         );
@@ -510,19 +496,22 @@ const ReportTab = ({ event }) => {
         <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center bg-[var(--color-bg-secondary)] p-4 rounded-xl border border-[var(--color-border)]">
                 <div>
-                    <h3 className="text-lg font-bold text-[var(--color-text-primary)]">Expert PDF Report</h3>
-                    <p className="text-sm text-[var(--color-text-muted)]">View and download a strictly structured, multi-page print-ready document.</p>
+                    <h3 className="text-base font-semibold text-[var(--color-text-primary)]">Event Report</h3>
+                    <p className="text-xs text-[var(--color-text-muted)]">Multi-page PDF following the official event report format.</p>
                 </div>
                 <PDFDownloadLink
                     document={<MyDocument event={event} data={reportData} />}
                     fileName={`${event.name.replace(/\s+/g, '_')}_Report.pdf`}
-                    className="btn btn-primary"
                 >
-                    {({ loading }) => loading ? 'Generating PDF...' : 'Download PDF'}
+                    {({ loading: pdfLoading }) => (
+                        <Button size="sm" loading={pdfLoading}>
+                            {pdfLoading ? 'Generating...' : 'Download PDF'}
+                        </Button>
+                    )}
                 </PDFDownloadLink>
             </div>
 
-            <Card className="flex flex-col h-[90vh] overflow-hidden bg-[var(--color-bg-secondary)] p-0">
+            <Card className="flex flex-col h-[85vh] overflow-hidden bg-[var(--color-bg-secondary)] p-0">
                 <div className="flex-1 w-full h-full">
                     <PDFViewer width="100%" height="100%" className="border-none">
                         <MyDocument event={event} data={reportData} />

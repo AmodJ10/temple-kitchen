@@ -162,7 +162,7 @@ const MeetingForm = ({ event, initial, onSubmit, onCancel, loading }) => {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 pr-6">
                                     <Input
-                                        placeholder="Task Title (Required)"
+                                       
                                         value={act.title}
                                         onChange={(e) => handleActionableChange(idx, 'title', e.target.value)}
                                         required
@@ -187,14 +187,14 @@ const MeetingForm = ({ event, initial, onSubmit, onCancel, loading }) => {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                                     <textarea
-                                        placeholder="Detailed Description (Optional)"
+                                       
                                         value={act.description || ''}
                                         onChange={(e) => handleActionableChange(idx, 'description', e.target.value)}
                                         rows={2}
                                         className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
                                     />
                                     <textarea
-                                        placeholder="How-To / Instructions (Optional)"
+                                       
                                         value={act.howTo || ''}
                                         onChange={(e) => handleActionableChange(idx, 'howTo', e.target.value)}
                                         rows={2}

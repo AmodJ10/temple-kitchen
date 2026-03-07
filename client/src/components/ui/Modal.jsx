@@ -18,34 +18,40 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        transition={{ duration: 0.15 }}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={onClose}
                     />
 
                     {/* Modal */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                        initial={{ opacity: 0, scale: 0.97, y: 8 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                        transition={{ duration: 0.2 }}
+                        exit={{ opacity: 0, scale: 0.97, y: 8 }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
                         className={`
-              relative w-full ${sizes[size]} bg-[var(--color-bg-card)]
-              rounded-2xl shadow-xl border border-[var(--color-border)]
-              max-h-[90vh] overflow-y-auto
-            `}
+                            relative w-full ${sizes[size]}
+                            bg-[var(--color-bg-card)] rounded-xl
+                            border border-[var(--color-border)]
+                            max-h-[90vh] overflow-y-auto
+                            shadow-2xl
+                        `}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
-                            <h2 className="text-lg font-semibold font-display text-[var(--color-text-primary)]">
+                        <div className="flex items-center justify-between px-6 py-4">
+                            <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
                                 {title}
                             </h2>
                             <button
                                 onClick={onClose}
-                                className="p-1.5 rounded-lg hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] transition-colors"
+                                className="p-1 rounded-md hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] transition-colors duration-150"
                             >
-                                <X size={20} />
+                                <X size={18} />
                             </button>
                         </div>
+
+                        {/* Divider */}
+                        <div className="mx-6 border-t border-[var(--color-border)]" />
 
                         {/* Body */}
                         <div className="px-6 py-4">

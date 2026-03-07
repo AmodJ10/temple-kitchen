@@ -34,7 +34,7 @@ const EventForm = ({ onSubmit, loading, initial }) => {
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); onSubmit(form); }} className="space-y-4">
-            <Input label="Event Name" placeholder="e.g. Diwali Utsav 2026" value={form.name} onChange={handleChange('name')} required />
+            <Input label="Event Name" value={form.name} onChange={handleChange('name')} required />
             <Select label="Event Type" value={form.type} onChange={handleChange('type')}
                 options={EVENT_TYPES.map((t) => ({ value: t.value, label: t.label }))} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -47,7 +47,7 @@ const EventForm = ({ onSubmit, loading, initial }) => {
                 <textarea
                     value={form.description} onChange={handleChange('description')} rows={3}
                     className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-                    placeholder="Brief description of the event..."
+                   
                 />
             </div>
             <div className="flex justify-end gap-3 pt-2">
@@ -107,7 +107,7 @@ const EventsListPage = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Events</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Events</h1>
                     <p className="text-[var(--color-text-muted)] text-sm mt-1">Manage all your temple events</p>
                 </div>
                 <Button onClick={() => setShowCreate(true)}>
@@ -120,16 +120,16 @@ const EventsListPage = () => {
                 <div className="relative flex-1 w-full">
                     <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
                     <input
-                        placeholder="Search events..."
+                       
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                     />
                 </div>
                 <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
-                    placeholder="All Types" options={EVENT_TYPES.map((t) => ({ value: t.value, label: t.label }))} />
+                    options={EVENT_TYPES.map((t) => ({ value: t.value, label: t.label }))} />
                 <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-                    placeholder="All Statuses" options={EVENT_STATUSES.map((s) => ({ value: s.value, label: s.label }))} />
+                    options={EVENT_STATUSES.map((s) => ({ value: s.value, label: s.label }))} />
                 <div className="flex gap-1 p-1 rounded-xl bg-[var(--color-bg-secondary)]">
                     <button onClick={() => setViewMode('cards')}
                         className={`p-2 rounded-lg transition-colors ${viewMode === 'cards' ? 'bg-[var(--color-bg-card)] shadow-sm text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>
@@ -171,7 +171,7 @@ const EventsListPage = () => {
                                         <Badge color={typeInfo?.color}>{typeInfo?.label}</Badge>
                                         <Badge color={statusInfo?.color}>{statusInfo?.label}</Badge>
                                     </div>
-                                    <h3 className="font-display text-lg font-semibold text-[var(--color-text-primary)] mb-2 truncate">{event.name}</h3>
+                                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2 truncate">{event.name}</h3>
                                     <div className="space-y-1.5 text-sm text-[var(--color-text-muted)]">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={14} />
@@ -194,7 +194,7 @@ const EventsListPage = () => {
                 </div>
             ) : (
                 /* Table View */
-                <div className="overflow-x-auto rounded-2xl border border-[var(--color-border)]">
+                <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="bg-[var(--color-bg-secondary)]">

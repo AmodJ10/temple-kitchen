@@ -191,6 +191,7 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
     const [form, setForm] = useState(initial || {
         name: '', type: 'lunch', headcount: event?.expectedHeadcount || 100,
         totalYield: { amount: 0, unit: 'kg' },
+        leftover: { amount: 0, unit: 'kg' },
         ingredients: [], notes: ''
     });
 
@@ -268,7 +269,7 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                             <div key={idx} className="flex items-center gap-2">
                                 <div className="flex-1">
                                     <Input
-                                        placeholder="Item Name (e.g. Rice)"
+
                                         value={ing.name}
                                         onChange={(e) => handleIngredientChange(idx, 'name', e.target.value)}
                                         required
@@ -279,7 +280,7 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                                         type="number"
                                         min={0}
                                         step="0.01"
-                                        placeholder="Qty"
+
                                         value={ing.quantity === '' ? '' : ing.quantity}
                                         onChange={(e) => handleIngredientChange(idx, 'quantity', e.target.value === '' ? '' : Number(e.target.value))}
                                         required
@@ -306,19 +307,30 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                 )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
                 <Input
-                    label="Total Yield Amount"
+                    label="Yield Amount"
                     type="number"
                     min={0}
                     step="0.1"
                     value={form.totalYield?.amount || ''}
                     onChange={(e) => handleChange('totalYield', { ...form.totalYield, amount: Number(e.target.value) })}
                 />
+                <Input
+                    label="Leftover"
+                    type="number"
+                    min={0}
+                    step="0.1"
+                    value={form.leftover?.amount || ''}
+                    onChange={(e) => handleChange('leftover', { ...form.leftover, amount: Number(e.target.value) })}
+                />
                 <Select
-                    label="Yield Unit"
+                    label="Unit"
                     value={form.totalYield?.unit || ''}
-                    onChange={(e) => handleChange('totalYield', { ...form.totalYield, unit: e.target.value })}
+                    onChange={(e) => {
+                        handleChange('totalYield', { ...form.totalYield, unit: e.target.value });
+                        handleChange('leftover', { ...form.leftover, unit: e.target.value });
+                    }}
                     options={[{ value: '', label: 'Select unit' }, ...UNIT_OPTIONS]}
                 />
             </div>
@@ -330,7 +342,7 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                     onChange={(e) => handleChange('notes', e.target.value)}
                     rows={3}
                     className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-                    placeholder="Cooking instructions or notes..."
+
                 />
             </div>
 

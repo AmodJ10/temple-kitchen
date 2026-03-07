@@ -136,7 +136,7 @@ const AttendanceTab = ({ event, selectedDayId }) => {
     };
 
     const availableSevekaris = useMemo(() => {
-        const attendeeIds = new Set(attendees.map(a => a.sevekariId._id || a.sevekariId));
+        const attendeeIds = new Set(attendees.map(a => a.sevekariId?._id || a.sevekariId));
         return allSevekaris.filter(s =>
             !attendeeIds.has(s._id) &&
             (s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -285,7 +285,7 @@ const AttendanceTab = ({ event, selectedDayId }) => {
             <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Assign Sevekaris" size="md">
                 <div className="space-y-4">
                     <Input
-                        placeholder="Search by name or phone..."
+
                         icon={Search}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}

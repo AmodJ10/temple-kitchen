@@ -103,7 +103,7 @@ const DashWidget = ({ title, icon: Icon, iconColor, isEditing, children }) => (
                     <Icon size={15} />
                 </div>
             )}
-            {title && <h3 className="font-display text-sm font-semibold text-[var(--color-text-primary)] truncate">{title}</h3>}
+            {title && <h3 className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{title}</h3>}
         </div>
         <div className="flex-1 min-h-0 px-5 pb-4 overflow-auto flex flex-col justify-center">
             {children}
@@ -246,10 +246,10 @@ const DashboardPage = () => {
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                    <h1 className="font-display text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">
+                    <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">
                         Dashboard
                     </h1>
-                    <p className="text-[var(--color-text-muted)] text-sm mt-1">Welcome to Temple Kitchen Management 🙏</p>
+                    <p className="text-[var(--color-text-muted)] text-sm mt-1">Welcome to MSM Kitchen Management 🙏</p>
                 </div>
                 <div className="flex items-center gap-2">
                     {isEditing && (

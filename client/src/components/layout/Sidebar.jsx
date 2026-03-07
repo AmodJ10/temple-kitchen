@@ -22,8 +22,8 @@ const adminNavItems = [
 
 const ROLE_COLORS = {
     engineer: '#8B5CF6',
-    admin: '#3B82F6',
-    user: '#6B7280',
+    admin: '#C4785C',
+    user: '#71717A',
 };
 
 const Sidebar = () => {
@@ -45,26 +45,26 @@ const Sidebar = () => {
 
     return (
         <motion.aside
-            animate={{ width: sidebarCollapsed ? 64 : 260 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            animate={{ width: sidebarCollapsed ? 64 : 240 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             className="hidden md:flex flex-col h-screen sticky top-0 bg-[var(--color-bg-card)] border-r border-[var(--color-border)] z-30"
         >
             {/* Logo */}
-            <div className="flex items-center gap-3 px-4 h-16 border-b border-[var(--color-border)]">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] flex items-center justify-center text-white font-bold text-lg shrink-0">
-                    🙏
+            <div className="flex items-center gap-3 px-4 h-14 border-b border-[var(--color-border)]">
+                <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center text-white font-bold text-xs shrink-0">
+                    M
                 </div>
                 <AnimatePresence>
                     {!sidebarCollapsed && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="overflow-hidden">
-                            <span className="font-display text-lg font-semibold text-[var(--color-text-primary)] whitespace-nowrap">Temple Kitchen</span>
+                            <span className="text-sm font-semibold text-[var(--color-text-primary)] whitespace-nowrap tracking-tight">MSM Kitchen</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
+            <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
                 {allNavItems.map(({ path, label, icon: Icon }) => {
                     const isActive = location.pathname.startsWith(path);
                     return (
@@ -72,14 +72,21 @@ const Sidebar = () => {
                             key={path}
                             to={path}
                             className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
-                ${isActive
-                                    ? 'bg-[var(--color-bg-secondary)] text-[var(--color-primary)] border-l-[3px] border-[var(--color-primary)]'
-                                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]'
+                                flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ease-out relative
+                                ${isActive
+                                    ? 'bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium'
+                                    : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]'
                                 }
-              `}
+                            `}
                         >
-                            <Icon size={20} className="shrink-0" />
+                            {isActive && (
+                                <motion.div
+                                    layoutId="sidebar-active"
+                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-[var(--color-primary)]"
+                                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                                />
+                            )}
+                            <Icon size={18} className="shrink-0" />
                             <AnimatePresence>
                                 {!sidebarCollapsed && (
                                     <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -95,12 +102,12 @@ const Sidebar = () => {
             </nav>
 
             {/* Bottom Actions */}
-            <div className="px-2 pb-4 space-y-1 border-t border-[var(--color-border)] pt-4">
+            <div className="px-2 pb-3 space-y-0.5 border-t border-[var(--color-border)] pt-3">
                 {/* User info */}
                 {user && (
-                    <div className="flex items-center gap-3 px-3 py-2 mb-2">
+                    <div className="flex items-center gap-3 px-3 py-2 mb-1">
                         <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-white text-xs font-bold shrink-0"
                             style={{ backgroundColor: ROLE_COLORS[user.role] || ROLE_COLORS.user }}
                         >
                             {user.name?.charAt(0).toUpperCase()}
@@ -109,8 +116,8 @@ const Sidebar = () => {
                             {!sidebarCollapsed && (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="overflow-hidden min-w-0">
                                     <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{user.name}</p>
-                                    <p className="text-xs capitalize" style={{ color: ROLE_COLORS[user.role] || ROLE_COLORS.user }}>
-                                        <Shield size={10} className="inline mr-1" />{user.role}
+                                    <p className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">
+                                        {user.role}
                                     </p>
                                 </motion.div>
                             )}
@@ -120,25 +127,25 @@ const Sidebar = () => {
 
                 <button
                     onClick={toggleDarkMode}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] w-full transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)] w-full transition-all duration-150"
                 >
-                    {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-                    {!sidebarCollapsed && <span>{darkMode ? 'Light Mode' : 'Dark Mode'}</span>}
+                    {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                    {!sidebarCollapsed && <span>{darkMode ? 'Light' : 'Dark'}</span>}
                 </button>
 
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 w-full transition-colors"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--color-text-muted)] hover:bg-red-500/10 hover:text-red-400 w-full transition-all duration-150"
                 >
-                    <LogOut size={20} />
+                    <LogOut size={18} />
                     {!sidebarCollapsed && <span>Logout</span>}
                 </button>
 
                 <button
                     onClick={toggleSidebar}
-                    className="flex items-center justify-center w-full py-2 rounded-xl hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] transition-colors"
+                    className="flex items-center justify-center w-full py-1.5 rounded-lg hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] transition-all duration-150"
                 >
-                    {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                    {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                 </button>
             </div>
         </motion.aside>
