@@ -27,8 +27,8 @@ const InventoryForm = ({ onSubmit, loading, initial, onClose }) => {
             <Input label="Item Name *" value={form.name} onChange={handleChange('name')} required />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Select label="Unit *" value={form.unit} onChange={handleChange('unit')} options={[{ value: '', label: 'Select unit' }, ...UNIT_OPTIONS]} required />
-                <Input label="Current Stock" type="number" min={0} value={form.currentStock} onChange={handleChange('currentStock')} />
-                <Input label="Min Stock Alert" type="number" min={0} value={form.minimumStockAlert} onChange={handleChange('minimumStockAlert')} />
+                <Input label="Current Stock" type="number" min={0} step="any" value={form.currentStock} onChange={handleChange('currentStock')} />
+                <Input label="Min Stock Alert" type="number" min={0} step="any" value={form.minimumStockAlert} onChange={handleChange('minimumStockAlert')} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select label="Category" value={form.category} onChange={handleChange('category')}
@@ -59,7 +59,7 @@ const StockAdjustForm = ({ item, onSubmit, loading, onClose }) => {
             </div>
             <Select label="Adjustment Type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
                 options={[{ value: 'addition', label: 'Add Stock' }, { value: 'deduction', label: 'Deduct Stock' }, { value: 'adjustment', label: 'Set New Level' }]} />
-            <Input label="Quantity" type="number" min={0} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} required />
+            <Input label="Quantity" type="number" min={0} step="any" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} required />
             <Input label="Reason / Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             <div className="flex justify-end gap-3 pt-2">
                 <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
