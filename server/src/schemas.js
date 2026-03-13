@@ -1,17 +1,36 @@
 import { z } from 'zod';
 
+const emptyStringToUndefined = (value) => {
+    if (typeof value !== 'string') {
+        return value;
+    }
+
+    const trimmedValue = value.trim();
+    return trimmedValue === '' ? undefined : trimmedValue;
+};
+
+const optionalIdSchema = z.preprocess(
+    emptyStringToUndefined,
+    z.string().min(1).optional()
+);
+
+const optionalDateSchema = z.preprocess(
+    emptyStringToUndefined,
+    z.string().or(z.date()).optional()
+);
+
 // ─── User Schemas ────────────────────────────────────────────────
 export const userRoles = ['engineer', 'admin', 'user'];
 
 export const registerSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters').max(128),
+    email: z.string().trim().email('Invalid email address').transform((value) => value.toLowerCase()),
+    password: z.string().min(8, 'Password must be at least 8 characters').max(128),
     role: z.enum(userRoles).default('user'),
 });
 
 export const loginSchema = z.object({
-    email: z.string().email('Invalid email address'),
+    email: z.string().trim().email('Invalid email address').transform((value) => value.toLowerCase()),
     password: z.string().min(1, 'Password is required'),
 });
 
@@ -140,6 +159,17 @@ export const attendanceSchema = z.object({
     notes: z.string().max(500).optional().default(''),
 });
 
+export const attendanceBulkSchema = z.object({
+    eventDayId: z.string().min(1),
+    eventId: z.string().min(1),
+    sevekariIds: z.array(
+        z.object({
+            id: z.string().min(1),
+            name: z.string().min(1),
+        })
+    ).min(1, 'At least one sevekari is required'),
+});
+
 // ─── Inventory Used Schemas ──────────────────────────────────────
 export const inventoryUsedSchema = z.object({
     eventDayId: z.string().min(1),
@@ -159,8 +189,8 @@ export const priorities = ['high', 'medium', 'low'];
 export const actionableSchema = z.object({
     title: z.string().min(1, 'Actionable title required'),
     description: z.string().optional().default(''),
-    assignedTo: z.string().optional().default(''),
-    dueDate: z.string().or(z.date()).optional(),
+    assignedTo: optionalIdSchema,
+    dueDate: optionalDateSchema,
     priority: z.enum(priorities).default('medium'),
 });
 
@@ -187,12 +217,35 @@ export const taskSchema = z.object({
     title: z.string().min(1, 'Task title required').max(300),
     description: z.string().max(2000).optional().default(''),
     howTo: z.string().max(5000).optional().default(''),
-    assignedTo: z.string().optional().default(''),
+    assignedTo: optionalIdSchema,
     assignedToName: z.string().optional().default(''),
-    dueDate: z.string().or(z.date()).optional(),
+    dueDate: optionalDateSchema,
     priority: z.enum(priorities).default('medium'),
     status: z.enum(taskStatuses).default('todo'),
     source: z.enum(taskSources).default('manual'),
     meetingActionableRef: z.string().optional().default(''),
     order: z.number().int().min(0).optional().default(0),
+});
+
+export const attendanceUpdateSchema = attendanceSchema.partial();
+export const dishUpdateSchema = dishSchema.partial();
+export const meetingUpdateSchema = meetingSchema.partial();
+export const taskUpdateSchema = taskSchema.partial();
+
+export const taskStatusUpdateSchema = z.object({
+    status: z.enum(taskStatuses),
+});
+
+export const taskReorderSchema = z.object({
+    tasks: z.array(
+        z.object({
+            id: z.string().min(1),
+            status: z.enum(taskStatuses),
+            order: z.number().int().min(0),
+        })
+    ).min(1, 'At least one task is required'),
+});
+
+export const dishReorderSchema = z.object({
+    orderedIds: z.array(z.string().min(1)).min(1, 'At least one dish id is required'),
 });

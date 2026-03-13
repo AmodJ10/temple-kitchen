@@ -13,6 +13,8 @@ import Card from '../components/ui/Card';
 import Skeleton from '../components/ui/Skeleton';
 import EmptyState from '../components/ui/EmptyState';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
+import Pagination from '../components/ui/Pagination';
+import PageHeader from '../components/ui/PageHeader';
 
 const ROLE_CONFIG = {
     engineer: { label: 'Engineer', color: '#8B5CF6', icon: Wrench },
@@ -29,7 +31,7 @@ const RegisterForm = ({ onSubmit, loading, onClose }) => {
             <Input label="Full Name" value={form.name} onChange={handleChange('name')} required />
             <Input label="Email" type="email" value={form.email} onChange={handleChange('email')} required />
             <Input label="Password" type="password" value={form.password} onChange={handleChange('password')} required
-                minLength={6} />
+                minLength={8} />
             <Select label="Role" value={form.role} onChange={handleChange('role')}
                 options={[
                     { value: 'user', label: 'User (Read Only)' },
@@ -52,7 +54,10 @@ const UserManagementPage = () => {
     const [showRegister, setShowRegister] = useState(false);
     const [registering, setRegistering] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [roleChangeTarget, setRoleChangeTarget] = useState(null);
     const currentUser = useAuthStore((s) => s.user);
+    const [page, setPage] = useState(1);
+    const PAGE_SIZE = 25;
 
     const fetchUsers = async () => {
         try {
@@ -64,6 +69,8 @@ const UserManagementPage = () => {
     };
 
     useEffect(() => { fetchUsers(); }, []);
+
+    useEffect(() => { document.title = 'User Management — MSM Kitchen'; }, []);
 
     const handleRegister = async (form) => {
         setRegistering(true);
@@ -84,6 +91,12 @@ const UserManagementPage = () => {
         } catch (err) { toast.error(err.response?.data?.message || 'Failed to update role'); }
     };
 
+    const confirmRoleChange = async () => {
+        if (!roleChangeTarget) return;
+        await handleRoleChange(roleChangeTarget.userId, roleChangeTarget.newRole);
+        setRoleChangeTarget(null);
+    };
+
     const handleDelete = async () => {
         if (!deleteTarget) return;
         try {
@@ -98,16 +111,15 @@ const UserManagementPage = () => {
         u.name.toLowerCase().includes(search.toLowerCase()) ||
         u.email.toLowerCase().includes(search.toLowerCase())
     );
+    const pageFiltered = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     return (
         <div className="page-container space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">User Management</h1>
-                    <p className="text-[var(--color-text-muted)] text-sm mt-1">Manage user accounts and roles</p>
-                </div>
-                <Button onClick={() => setShowRegister(true)}><UserPlus size={18} /> Add User</Button>
-            </div>
+            <PageHeader
+                title="User Management"
+                description="Manage user accounts, role changes, and access boundaries."
+                actions={<Button onClick={() => setShowRegister(true)}><UserPlus size={18} /> Add User</Button>}
+            />
 
             {/* Role Legend */}
             <div className="flex flex-wrap gap-3">
@@ -131,9 +143,16 @@ const UserManagementPage = () => {
             {/* Search */}
             <div className="relative max-w-md">
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
-                <input value={search} onChange={(e) => setSearch(e.target.value)}
+                <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                    placeholder="Search users by name or email"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" />
             </div>
+
+            {!loading && filtered.length > 0 && (
+                <p className="text-sm text-[var(--color-text-muted)] -mt-2">
+                    {filtered.length} user{filtered.length !== 1 ? 's' : ''}{search ? ' matching search' : ''}
+                </p>
+            )}
 
             {/* Users Table */}
             {loading ? (
@@ -153,7 +172,7 @@ const UserManagementPage = () => {
                         </thead>
                         <tbody>
                             <AnimatePresence>
-                                {filtered.map((user, i) => {
+                                {pageFiltered.map((user, i) => {
                                     const isSelf = user._id === currentUser?._id;
                                     const roleCfg = ROLE_CONFIG[user.role] || ROLE_CONFIG.user;
                                     const RoleIcon = roleCfg.icon;
@@ -173,7 +192,12 @@ const UserManagementPage = () => {
                                                     </div>
                                                     <div>
                                                         <span className="font-medium text-[var(--color-text-primary)]">{user.name}</span>
-                                                        {isSelf && <span className="ml-2 text-xs text-[var(--color-primary)]">(You)</span>}
+                                                        {isSelf && (
+                                                            <>
+                                                                {' '}
+                                                                <span className="ml-2 text-xs text-[var(--color-primary)]">(You)</span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </td>
@@ -186,7 +210,7 @@ const UserManagementPage = () => {
                                                 ) : (
                                                     <select
                                                         value={user.role}
-                                                        onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                                                        onChange={(e) => setRoleChangeTarget({ userId: user._id, newRole: e.target.value, userName: user.name, currentRole: user.role })}
                                                         className="px-3 py-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] cursor-pointer"
                                                     >
                                                         <option value="user">User</option>
@@ -215,11 +239,22 @@ const UserManagementPage = () => {
                     </table>
                 </div>
             )}
+            <Pagination page={page} totalPages={Math.ceil(filtered.length / PAGE_SIZE)} totalItems={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
 
             {/* Register Modal */}
             <Modal isOpen={showRegister} onClose={() => setShowRegister(false)} title="Register New User" size="md">
                 <RegisterForm onSubmit={handleRegister} loading={registering} onClose={() => setShowRegister(false)} />
             </Modal>
+
+            {/* Role Change Confirm */}
+            <ConfirmDialog
+                isOpen={!!roleChangeTarget}
+                onClose={() => setRoleChangeTarget(null)}
+                onConfirm={confirmRoleChange}
+                title="Change User Role"
+                message={roleChangeTarget ? `Change ${roleChangeTarget.userName}'s role from ${roleChangeTarget.currentRole} to ${roleChangeTarget.newRole}?` : ''}
+                confirmText="Change Role"
+            />
 
             {/* Delete Confirm */}
             <ConfirmDialog

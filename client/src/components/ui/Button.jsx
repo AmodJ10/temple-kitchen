@@ -1,29 +1,29 @@
 import { forwardRef } from 'react';
-import { motion } from 'framer-motion';
 
 const variants = {
-    primary: 'bg-[#F5F4F0] text-[#161616] hover:bg-[#E8E7E3] dark:bg-[#F5F4F0] dark:text-[#161616] dark:hover:bg-[#E8E7E3]',
+    primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]',
     secondary: 'bg-transparent border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]',
-    danger: 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20',
+    danger: 'bg-[var(--color-danger-soft)] text-[var(--color-danger)] hover:bg-[var(--color-danger-soft-hover)] border border-[var(--color-danger-border)]',
     ghost: 'bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]',
-    success: 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20',
+    success: 'bg-[var(--color-success-soft)] text-[var(--color-success)] hover:bg-[var(--color-success-soft-hover)] border border-[var(--color-success-border)]',
+    outline: 'bg-transparent border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] hover:text-[var(--color-text-primary)]',
 };
 
 const sizes = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-5 py-2.5 text-sm',
+    sm: 'px-3 py-1.5 text-[var(--text-xs)]',
+    md: 'px-4 py-2.5 text-[var(--text-sm)]',
+    lg: 'px-5 py-3 text-[var(--text-sm)]',
 };
 
 const Button = forwardRef(({ variant = 'primary', size = 'md', children, className = '', disabled, loading, ...props }, ref) => {
     return (
-        <motion.button
+        <button
             ref={ref}
-            whileTap={{ scale: 0.98 }}
-            transition={{ duration: 0.1 }}
             className={`
                 inline-flex items-center justify-center gap-2 font-medium rounded-lg
-                transition-all duration-150 ease-out
+                transition-[background-color,color,border-color,transform] duration-[var(--duration-fast)]
+                [transition-timing-function:var(--ease-expo)]
+                active:scale-[0.98]
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]
                 disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none
                 ${variants[variant]} ${sizes[size]} ${className}
@@ -38,7 +38,7 @@ const Button = forwardRef(({ variant = 'primary', size = 'md', children, classNa
                 </svg>
             )}
             {children}
-        </motion.button>
+        </button>
     );
 });
 

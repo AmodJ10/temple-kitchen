@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -101,11 +101,17 @@ function App() {
     const initTheme = useUIStore((s) => s.initTheme);
     const checkAuth = useAuthStore((s) => s.checkAuth);
     const isCheckingAuth = useAuthStore((s) => s.isCheckingAuth);
+    const hasInitialized = useRef(false);
 
     useEffect(() => {
+        if (hasInitialized.current) {
+            return;
+        }
+
+        hasInitialized.current = true;
         initTheme();
         checkAuth();
-    }, []);
+    }, [checkAuth, initTheme]);
 
     if (isCheckingAuth) {
         return <PageLoader />;

@@ -12,6 +12,7 @@ import EmptyState from '../ui/EmptyState';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import Skeleton from '../ui/Skeleton';
 import { formatDate } from '../../utils/formatters';
+import useAuthStore from '../../store/authStore';
 
 const MEETING_TYPES = [
     { value: 'pre-event', label: 'Pre-Event Planning' },
@@ -131,6 +132,7 @@ const MeetingForm = ({ event, initial, onSubmit, onCancel, loading }) => {
                         onChange={(e) => handleChange('agenda', e.target.value)}
                         rows={3}
                         className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+                        placeholder="Summarize agenda items, key updates, and meeting notes"
                     />
                 </div>
             </div>
@@ -162,7 +164,7 @@ const MeetingForm = ({ event, initial, onSubmit, onCancel, loading }) => {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 pr-6">
                                     <Input
-                                       
+                                        placeholder="Action item title"
                                         value={act.title}
                                         onChange={(e) => handleActionableChange(idx, 'title', e.target.value)}
                                         required
@@ -175,6 +177,7 @@ const MeetingForm = ({ event, initial, onSubmit, onCancel, loading }) => {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <Input
+                                        placeholder="Due date"
                                         type="date"
                                         value={act.dueDate ? act.dueDate.split('T')[0] : ''}
                                         onChange={(e) => handleActionableChange(idx, 'dueDate', e.target.value ? new Date(e.target.value).toISOString() : '')}
@@ -187,14 +190,14 @@ const MeetingForm = ({ event, initial, onSubmit, onCancel, loading }) => {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                                     <textarea
-                                       
+                                        placeholder="What needs to be done?"
                                         value={act.description || ''}
                                         onChange={(e) => handleActionableChange(idx, 'description', e.target.value)}
                                         rows={2}
                                         className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
                                     />
                                     <textarea
-                                       
+                                        placeholder="How should this be executed?"
                                         value={act.howTo || ''}
                                         onChange={(e) => handleActionableChange(idx, 'howTo', e.target.value)}
                                         rows={2}
@@ -223,6 +226,7 @@ const MeetingsTab = ({ event }) => {
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const canEdit = useAuthStore((s) => s.canEdit());
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingMeeting, setEditingMeeting] = useState(null);
@@ -283,14 +287,14 @@ const MeetingsTab = ({ event }) => {
         <div className="space-y-6">
             <div className="flex justify-between items-center hidden sm:flex">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Meetings & Minutes</h3>
-                <Button onClick={() => { setEditingMeeting(null); setIsFormOpen(true); }}>
+                {canEdit && <Button onClick={() => { setEditingMeeting(null); setIsFormOpen(true); }}>
                     <Plus size={16} /> Log Meeting
-                </Button>
+                </Button>}
             </div>
 
-            <Button onClick={() => { setEditingMeeting(null); setIsFormOpen(true); }} className="w-full sm:hidden">
+            {canEdit && <Button onClick={() => { setEditingMeeting(null); setIsFormOpen(true); }} className="w-full sm:hidden">
                 <Plus size={16} /> Log Meeting
-            </Button>
+            </Button>}
 
             {loading ? (
                 <div className="space-y-3">
@@ -302,11 +306,11 @@ const MeetingsTab = ({ event }) => {
                     icon={MessageSquare}
                     title="No meetings logged"
                     description="Record planning meetings and action items for this event."
-                    action={
+                    action={canEdit ? (
                         <Button onClick={() => { setEditingMeeting(null); setIsFormOpen(true); }}>
                             <Plus size={16} /> Log Meeting
                         </Button>
-                    }
+                    ) : null}
                 />
             ) : (
                 <div className="space-y-4">
@@ -326,7 +330,7 @@ const MeetingsTab = ({ event }) => {
                                         )}
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
+                                {canEdit && <div className="flex gap-2">
                                     <button
                                         onClick={() => {
                                             setEditingMeeting({
@@ -349,7 +353,7 @@ const MeetingsTab = ({ event }) => {
                                     >
                                         <Trash2 size={16} />
                                     </button>
-                                </div>
+                                </div>}
                             </div>
 
                             {meeting.agenda && (
@@ -394,7 +398,7 @@ const MeetingsTab = ({ event }) => {
                 </div>
             )}
 
-            <Modal
+            {canEdit && <Modal
                 isOpen={isFormOpen}
                 onClose={() => !submitting && setIsFormOpen(false)}
                 title={editingMeeting ? "Edit Meeting Details" : "Log New Meeting"}
@@ -407,9 +411,9 @@ const MeetingsTab = ({ event }) => {
                     onCancel={() => setIsFormOpen(false)}
                     loading={submitting}
                 />
-            </Modal>
+            </Modal>}
 
-            <ConfirmDialog
+            {canEdit && <ConfirmDialog
                 isOpen={!!deletingMeeting}
                 onClose={() => setDeletingMeeting(null)}
                 onConfirm={handleDelete}
@@ -418,7 +422,7 @@ const MeetingsTab = ({ event }) => {
                 confirmText="Delete"
                 danger
                 loading={submitting}
-            />
+            />}
         </div>
     );
 };

@@ -29,6 +29,7 @@ import EmptyState from '../ui/EmptyState';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import Skeleton from '../ui/Skeleton';
 import { UNIT_OPTIONS } from '../../utils/constants';
+import useAuthStore from '../../store/authStore';
 
 const DISH_TYPES = [
     { value: 'breakfast', label: 'Breakfast', color: '#E8621A' },
@@ -38,7 +39,7 @@ const DISH_TYPES = [
     { value: 'snack', label: 'Snack', color: '#F1C40F' }
 ];
 
-const SortableDishItem = ({ dish, onEdit, onDelete, isExpanded, onToggle }) => {
+const SortableDishItem = ({ dish, onEdit, onDelete, isExpanded, onToggle, canEdit }) => {
     const {
         attributes,
         listeners,
@@ -64,14 +65,16 @@ const SortableDishItem = ({ dish, onEdit, onDelete, isExpanded, onToggle }) => {
                     } p-4 flex items-center gap-4 hover:shadow-sm transition-all cursor-pointer`}
                 onClick={onToggle}
             >
-                <button
-                    className="text-[var(--color-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--color-text-primary)]"
-                    {...attributes}
-                    {...listeners}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <GripVertical size={20} />
-                </button>
+                {canEdit && (
+                    <button
+                        className="text-[var(--color-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--color-text-primary)]"
+                        {...attributes}
+                        {...listeners}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <GripVertical size={20} />
+                    </button>
+                )}
 
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -88,7 +91,7 @@ const SortableDishItem = ({ dish, onEdit, onDelete, isExpanded, onToggle }) => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {canEdit && <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                             onClick={(e) => { e.stopPropagation(); onEdit(dish); }}
                             className="p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-secondary)] rounded-lg transition-colors"
@@ -101,7 +104,7 @@ const SortableDishItem = ({ dish, onEdit, onDelete, isExpanded, onToggle }) => {
                         >
                             <Trash2 size={16} />
                         </button>
-                    </div>
+                    </div>}
                     <motion.div
                         animate={{ rotate: isExpanded ? 180 : 0 }}
                         transition={{ duration: 0.2 }}
@@ -189,9 +192,9 @@ const SortableDishItem = ({ dish, onEdit, onDelete, isExpanded, onToggle }) => {
 
 const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }) => {
     const [form, setForm] = useState(initial || {
-        name: '', type: 'lunch', headcount: event?.expectedHeadcount || 100,
-        totalYield: { amount: 0, unit: 'kg' },
-        leftover: { amount: 0, unit: 'kg' },
+        name: '', type: 'lunch', headcount: '',
+        totalYield: { amount: '', unit: 'kg' },
+        leftover: { amount: '', unit: 'kg' },
         ingredients: [], notes: ''
     });
 
@@ -223,6 +226,13 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
         e.preventDefault();
         onSubmit({
             ...form,
+            headcount: Number(form.headcount || 0),
+            totalYield: { ...form.totalYield, amount: Number(form.totalYield?.amount || 0) },
+            leftover: { ...form.leftover, amount: Number(form.leftover?.amount || 0) },
+            ingredients: form.ingredients.map((ingredient) => ({
+                ...ingredient,
+                quantity: Number(ingredient.quantity || 0),
+            })),
             eventId: event._id,
             eventDayId: selectedDayId,
         });
@@ -248,7 +258,7 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                     type="number"
                     min={0}
                     value={form.headcount}
-                    onChange={(e) => handleChange('headcount', Number(e.target.value))}
+                    onChange={(e) => handleChange('headcount', e.target.value === '' ? '' : Number(e.target.value))}
                     required
                 />
             </div>
@@ -269,7 +279,7 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                             <div key={idx} className="flex items-center gap-2">
                                 <div className="flex-1">
                                     <Input
-
+                                        placeholder="Ingredient name"
                                         value={ing.name}
                                         onChange={(e) => handleIngredientChange(idx, 'name', e.target.value)}
                                         required
@@ -280,7 +290,7 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                                         type="number"
                                         min={0}
                                         step="0.01"
-
+                                        placeholder="Quantity"
                                         value={ing.quantity === '' ? '' : ing.quantity}
                                         onChange={(e) => handleIngredientChange(idx, 'quantity', e.target.value === '' ? '' : Number(e.target.value))}
                                         required
@@ -313,16 +323,16 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                     type="number"
                     min={0}
                     step="0.1"
-                    value={form.totalYield?.amount || ''}
-                    onChange={(e) => handleChange('totalYield', { ...form.totalYield, amount: Number(e.target.value) })}
+                    value={form.totalYield?.amount ?? ''}
+                    onChange={(e) => handleChange('totalYield', { ...form.totalYield, amount: e.target.value === '' ? '' : Number(e.target.value) })}
                 />
                 <Input
                     label="Leftover"
                     type="number"
                     min={0}
                     step="0.1"
-                    value={form.leftover?.amount || ''}
-                    onChange={(e) => handleChange('leftover', { ...form.leftover, amount: Number(e.target.value) })}
+                    value={form.leftover?.amount ?? ''}
+                    onChange={(e) => handleChange('leftover', { ...form.leftover, amount: e.target.value === '' ? '' : Number(e.target.value) })}
                 />
                 <Select
                     label="Unit"
@@ -342,7 +352,7 @@ const DishForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }
                     onChange={(e) => handleChange('notes', e.target.value)}
                     rows={3}
                     className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-
+                    placeholder="Add recipe notes, service timing, or prep instructions"
                 />
             </div>
 
@@ -363,6 +373,7 @@ const DishesTab = ({ event, selectedDayId }) => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [expandedDishId, setExpandedDishId] = useState(null);
+    const canEdit = useAuthStore((s) => s.canEdit());
 
     // Modal states
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -394,7 +405,10 @@ const DishesTab = ({ event, selectedDayId }) => {
     }, [selectedDayId]);
 
     const handleDragEnd = async (event) => {
+        if (!canEdit) return;
         const { active, over } = event;
+
+        if (!over) return;
 
         if (active.id !== over.id) {
             setDishes((items) => {
@@ -458,14 +472,14 @@ const DishesTab = ({ event, selectedDayId }) => {
         <div className="space-y-6">
             <div className="flex justify-between items-center hidden sm:flex">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Dishes Planned</h3>
-                <Button onClick={() => { setEditingDish(null); setIsFormOpen(true); }}>
+                {canEdit && <Button onClick={() => { setEditingDish(null); setIsFormOpen(true); }}>
                     <Plus size={16} /> Add Dish
-                </Button>
+                </Button>}
             </div>
 
-            <Button onClick={() => { setEditingDish(null); setIsFormOpen(true); }} className="w-full sm:hidden">
+            {canEdit && <Button onClick={() => { setEditingDish(null); setIsFormOpen(true); }} className="w-full sm:hidden">
                 <Plus size={16} /> Add Dish
-            </Button>
+            </Button>}
 
             {loading ? (
                 <div className="space-y-3">
@@ -478,15 +492,15 @@ const DishesTab = ({ event, selectedDayId }) => {
                     icon={Utensils}
                     title="No dishes planned"
                     description="Add dishes and ingredients for this event day"
-                    action={
+                    action={canEdit ? (
                         <Button onClick={() => { setEditingDish(null); setIsFormOpen(true); }}>
                             <Plus size={16} /> Add Dish
                         </Button>
-                    }
+                    ) : null}
                 />
             ) : (
                 <DndContext
-                    sensors={sensors}
+                    sensors={canEdit ? sensors : []}
                     collisionDetection={closestCenter}
                     onDragEnd={handleDragEnd}
                 >
@@ -499,6 +513,7 @@ const DishesTab = ({ event, selectedDayId }) => {
                                 <SortableDishItem
                                     key={dish._id}
                                     dish={dish}
+                                    canEdit={canEdit}
                                     isExpanded={expandedDishId === dish._id}
                                     onToggle={() => setExpandedDishId(expandedDishId === dish._id ? null : dish._id)}
                                     onEdit={(d) => { setEditingDish(d); setIsFormOpen(true); }}
@@ -510,7 +525,7 @@ const DishesTab = ({ event, selectedDayId }) => {
                 </DndContext>
             )}
 
-            <Modal
+            {canEdit && <Modal
                 isOpen={isFormOpen}
                 onClose={() => !submitting && setIsFormOpen(false)}
                 title={editingDish ? "Edit Dish" : "Add Dish"}
@@ -524,9 +539,9 @@ const DishesTab = ({ event, selectedDayId }) => {
                     onCancel={() => setIsFormOpen(false)}
                     loading={submitting}
                 />
-            </Modal>
+            </Modal>}
 
-            <ConfirmDialog
+            {canEdit && <ConfirmDialog
                 isOpen={!!deletingDish}
                 onClose={() => setDeletingDish(null)}
                 onConfirm={handleDelete}
@@ -535,7 +550,7 @@ const DishesTab = ({ event, selectedDayId }) => {
                 confirmText="Remove"
                 danger
                 loading={submitting}
-            />
+            />}
         </div>
     );
 };

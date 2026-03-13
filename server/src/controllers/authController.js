@@ -21,12 +21,23 @@ const COOKIE_OPTIONS = {
 
 export const register = asyncHandler(async (req, res) => {
     const { name, email, password, role } = req.body;
+    const normalizedEmail = email.toLowerCase();
+    const canAssignPrivilegedRoles = ['engineer', 'admin'].includes(req.user?.role);
 
-    const existing = await User.findOne({ email });
+    if (req.user && !canAssignPrivilegedRoles) {
+        throw ApiError.forbidden('Only admins and engineers can create additional accounts.');
+    }
+
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) throw ApiError.badRequest('Email already registered');
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ name, email, passwordHash, role });
+    const user = await User.create({
+        name,
+        email: normalizedEmail,
+        passwordHash,
+        role: canAssignPrivilegedRoles ? role : 'user',
+    });
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
@@ -41,8 +52,9 @@ export const register = asyncHandler(async (req, res) => {
 
 export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
+    const normalizedEmail = email.toLowerCase();
 
-    const user = await User.findOne({ email }).select('+passwordHash');
+    const user = await User.findOne({ email: normalizedEmail }).select('+passwordHash');
     if (!user) throw ApiError.unauthorized('Invalid email or password');
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);

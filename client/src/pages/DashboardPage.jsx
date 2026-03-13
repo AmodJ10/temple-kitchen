@@ -18,6 +18,8 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Skeleton from '../components/ui/Skeleton';
+import PageHeader from '../components/ui/PageHeader';
+import useAuthStore from '../store/authStore';
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -124,7 +126,7 @@ const MetricWidget = ({ icon: Icon, label, value, color, isEditing }) => (
                 <Icon size={22} />
             </div>
             <div className="min-w-0">
-                <p className="text-xs text-[var(--color-text-muted)] truncate">{label}</p>
+                <p className="text-xs text-[var(--color-text-muted)] leading-tight line-clamp-2">{label}</p>
                 <p className="text-xl font-bold font-mono text-[var(--color-text-primary)] truncate">{value}</p>
             </div>
         </div>
@@ -140,6 +142,9 @@ const DashboardPage = () => {
     const [pendingTasks, setPendingTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
+    const canEdit = useAuthStore((s) => s.canEdit());
+
+    useEffect(() => { document.title = 'Dashboard — MSM Kitchen'; }, []);
 
     // Manually measure container width with ResizeObserver via callback ref
     const [gridWidth, setGridWidth] = useState(0);
@@ -241,18 +246,19 @@ const DashboardPage = () => {
         Quantity: d.totalUsed
     }));
 
+    const urgentLowStockCount = data?.lowStockItems?.length || 0;
+    const urgentTaskCount = pendingTasks.length;
+    const upcomingCount = data?.upcomingEvents?.length || 0;
+    const hasUrgentItems = urgentLowStockCount > 0 || urgentTaskCount > 0;
+
     return (
         <div className="page-container space-y-4">
-            {/* Header */}
-            <div className="flex items-center justify-between flex-wrap gap-3">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">
-                        Dashboard
-                    </h1>
-                    <p className="text-[var(--color-text-muted)] text-sm mt-1">Welcome to MSM Kitchen Management 🙏</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    {isEditing && (
+            <PageHeader
+                title="Dashboard"
+                description="Operational overview with prioritized actions for event execution."
+                actions={(
+                    <div className="flex items-center gap-2">
+                    {canEdit && isEditing && (
                         <button
                             onClick={resetLayout}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)] transition-colors"
@@ -262,27 +268,58 @@ const DashboardPage = () => {
                             Reset
                         </button>
                     )}
-                    <button
-                        onClick={() => setIsEditing(!isEditing)}
-                        className={`
-                            flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200
-                            ${isEditing
-                                ? 'bg-[var(--color-primary)] text-white shadow-md'
-                                : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)]'
-                            }
-                        `}
-                        title={isEditing ? 'Lock layout' : 'Edit layout'}
-                    >
-                        {isEditing ? <Unlock size={14} /> : <Lock size={14} />}
-                        {isEditing ? 'Editing' : 'Edit Layout'}
-                    </button>
-                    <Button onClick={() => navigate('/events/new')}>
-                        <Plus size={18} /> New Event
-                    </Button>
-                </div>
-            </div>
+                    {canEdit && (
+                        <>
+                            <button
+                                onClick={() => setIsEditing(!isEditing)}
+                                className={`
+                                    flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200
+                                    ${isEditing
+                                        ? 'bg-[var(--color-primary)] text-white shadow-md'
+                                        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-bg-secondary)]'
+                                    }
+                                `}
+                                title={isEditing ? 'Lock layout — exit editing' : 'Edit layout — drag to rearrange'}
+                            >
+                                {isEditing ? <Unlock size={14} /> : <Lock size={14} />}
+                                {isEditing ? 'Editing' : 'Edit Layout'}
+                            </button>
+                            <Button onClick={() => navigate('/events', { state: { openCreate: true } })}>
+                                <Plus size={18} /> New Event
+                            </Button>
+                        </>
+                    )}
+                    </div>
+                )}
+            />
 
-            {isEditing && (
+            <Card className={`p-4 ${hasUrgentItems ? 'border-[var(--color-danger-border)] bg-[var(--color-danger-soft)]/30' : ''}`}>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <p className="text-xs uppercase tracking-[0.12em] text-[var(--color-text-muted)]">Action Center</p>
+                        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                            {hasUrgentItems
+                                ? 'Urgent operational items need attention before the next event cycle.'
+                                : 'No urgent blockers right now. Keep momentum on planned tasks.'}
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button variant={urgentLowStockCount > 0 ? 'danger' : 'secondary'} size="sm" onClick={() => navigate('/master/inventory')}>
+                            <AlertTriangle size={14} />
+                            {urgentLowStockCount > 0 ? `${urgentLowStockCount} Low Stock` : 'Inventory Healthy'}
+                        </Button>
+                        <Button variant={urgentTaskCount > 0 ? 'danger' : 'secondary'} size="sm" onClick={() => navigate('/events')}>
+                            <ClipboardList size={14} />
+                            {urgentTaskCount > 0 ? `${urgentTaskCount} Pending Tasks` : 'Tasks Under Control'}
+                        </Button>
+                        <Button variant="secondary" size="sm" onClick={() => navigate('/events')}>
+                            <Calendar size={14} /> {upcomingCount} Upcoming Events
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+
+            {canEdit && isEditing && (
                 <div className="bg-[var(--color-primary)]10 border border-[var(--color-primary)]30 rounded-xl px-4 py-2.5 text-sm text-[var(--color-primary)] flex items-center gap-2">
                     <GripVertical size={14} />
                     Drag widgets by their handles to rearrange. Resize from edges. Click <strong>Editing</strong> to lock.
@@ -431,7 +468,11 @@ const DashboardPage = () => {
                                         {pendingTasks.slice(0, 8).map((task) => {
                                             const p = PRIORITIES.find((pr) => pr.value === task.priority);
                                             return (
-                                                <div key={task._id} className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-[var(--color-bg-secondary)] transition-colors">
+                                                <div
+                                                    key={task._id}
+                                                    className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer"
+                                                    onClick={() => navigate(task.eventId ? `/events/${task.eventId}?tab=tasks` : '/events')}
+                                                >
                                                     <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: p?.color }} />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{task.title}</p>
@@ -454,7 +495,11 @@ const DashboardPage = () => {
                                 {data?.lowStockItems?.length > 0 ? (
                                     <div className="space-y-2">
                                         {data.lowStockItems.map((item) => (
-                                            <div key={item._id} className="flex items-center justify-between p-2.5 rounded-xl bg-red-50 dark:bg-red-950/20">
+                                            <div
+                                                key={item._id}
+                                                className="flex items-center justify-between p-2.5 rounded-xl bg-red-50 dark:bg-red-950/20 cursor-pointer"
+                                                onClick={() => navigate('/master/inventory')}
+                                            >
                                                 <div>
                                                     <p className="text-sm font-medium text-[var(--color-text-primary)]">{item.name}</p>
                                                     <p className="text-xs text-[var(--color-text-muted)]">Min: {item.minimumStockAlert} {item.unit}</p>
@@ -470,10 +515,10 @@ const DashboardPage = () => {
                         </div>
 
                         {/* Quick Actions */}
-                        <div key="quick-actions">
+                        {canEdit && <div key="quick-actions">
                             <DashWidget title="Quick Actions" icon={TrendingUp} iconColor="#3D8B37" isEditing={isEditing}>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <Button variant="secondary" size="sm" className="justify-start text-xs" onClick={() => navigate('/events/new')}>
+                                    <Button variant="secondary" size="sm" className="justify-start text-xs" onClick={() => navigate('/events', { state: { openCreate: true } })}>
                                         <Calendar size={15} /> New Event
                                     </Button>
                                     <Button variant="secondary" size="sm" className="justify-start text-xs" onClick={() => navigate('/master/sevekaris')}>
@@ -487,7 +532,7 @@ const DashboardPage = () => {
                                     </Button>
                                 </div>
                             </DashWidget>
-                        </div>
+                        </div>}
                     </ResponsiveGridLayout>
                 )}
             </div>

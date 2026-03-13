@@ -13,6 +13,7 @@ import EmptyState from '../ui/EmptyState';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import Skeleton from '../ui/Skeleton';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import useAuthStore from '../../store/authStore';
 
 const InventoryUsedForm = ({ event, selectedDayId, initial, onSubmit, onCancel, loading }) => {
     const [inventoryItems, setInventoryItems] = useState([]);
@@ -53,6 +54,7 @@ const InventoryUsedForm = ({ event, selectedDayId, initial, onSubmit, onCancel, 
 
         onSubmit({
             ...form,
+            quantityUsed: Number(form.quantityUsed || 0),
             eventId: event._id,
             eventDayId: selectedDayId,
         });
@@ -85,7 +87,7 @@ const InventoryUsedForm = ({ event, selectedDayId, initial, onSubmit, onCancel, 
                         min={0.01}
                         step="0.01"
                         value={form.quantityUsed || ''}
-                        onChange={(e) => handleChange('quantityUsed', Number(e.target.value))}
+                        onChange={(e) => handleChange('quantityUsed', e.target.value === '' ? '' : Number(e.target.value))}
                         required
                     />
                     <Select
@@ -112,7 +114,7 @@ const InventoryUsedForm = ({ event, selectedDayId, initial, onSubmit, onCancel, 
                         onChange={(e) => handleChange('notes', e.target.value)}
                         rows={2}
                         className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-
+                        placeholder="Add batch details, kitchen use, or stock handling notes"
                     />
                 </div>
             </div>
@@ -133,6 +135,7 @@ const InventoryUsedTab = ({ event, selectedDayId }) => {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const canEdit = useAuthStore((s) => s.canEdit());
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
@@ -207,14 +210,14 @@ const InventoryUsedTab = ({ event, selectedDayId }) => {
                         Deductions made here will irreversibly alter the master inventory stock.
                     </p>
                 </div>
-                <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }}>
+                {canEdit && <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }}>
                     <Plus size={16} /> Record Usage
-                </Button>
+                </Button>}
             </div>
 
-            <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }} className="w-full sm:hidden">
+            {canEdit && <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }} className="w-full sm:hidden">
                 <Plus size={16} /> Record Usage
-            </Button>
+            </Button>}
 
             {loading ? (
                 <div className="space-y-3">
@@ -226,11 +229,11 @@ const InventoryUsedTab = ({ event, selectedDayId }) => {
                     icon={PackageMinus}
                     title="No inventory consumed"
                     description="Record ingredients or supplies used on this event day."
-                    action={
+                    action={canEdit ? (
                         <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }}>
                             <Plus size={16} /> Record Usage
                         </Button>
-                    }
+                    ) : null}
                 />
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -260,7 +263,7 @@ const InventoryUsedTab = ({ event, selectedDayId }) => {
                                 )}
                             </div>
 
-                            <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {canEdit && <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => {
                                         setEditingRecord({
@@ -279,13 +282,13 @@ const InventoryUsedTab = ({ event, selectedDayId }) => {
                                 >
                                     <Trash2 size={16} />
                                 </button>
-                            </div>
+                            </div>}
                         </Card>
                     ))}
                 </div>
             )}
 
-            <Modal
+            {canEdit && <Modal
                 isOpen={isFormOpen}
                 onClose={() => !submitting && setIsFormOpen(false)}
                 title={editingRecord ? "Edit Usage" : "Record Inventory Usage"}
@@ -306,9 +309,9 @@ const InventoryUsedTab = ({ event, selectedDayId }) => {
                     onCancel={() => setIsFormOpen(false)}
                     loading={submitting}
                 />
-            </Modal>
+            </Modal>}
 
-            <ConfirmDialog
+            {canEdit && <ConfirmDialog
                 isOpen={!!deletingRecord}
                 onClose={() => setDeletingRecord(null)}
                 onConfirm={handleDelete}
@@ -317,7 +320,7 @@ const InventoryUsedTab = ({ event, selectedDayId }) => {
                 confirmText="Delete & Restore Stock"
                 danger
                 loading={submitting}
-            />
+            />}
         </div>
     );
 };

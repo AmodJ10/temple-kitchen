@@ -4,10 +4,17 @@ import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
+const normalizeTaskPayload = (payload) => ({
+    ...payload,
+    assignedTo: payload.assignedTo || undefined,
+    assignedToName: payload.assignedTo ? payload.assignedToName || '' : '',
+    dueDate: payload.dueDate || undefined,
+});
+
 export const getByEvent = asyncHandler(async (req, res) => {
     const tasks = await Task.find({ eventId: req.params.eventId })
         .populate('assignedTo', 'name photoUrl')
-        .sort({ priority: -1, order: 1 });
+        .sort({ order: 1, createdAt: 1 });
     ApiResponse.success(res, 'Tasks fetched', tasks);
 });
 
@@ -20,13 +27,13 @@ export const getAllPending = asyncHandler(async (_req, res) => {
 });
 
 export const create = asyncHandler(async (req, res) => {
-    const task = await Task.create(req.body);
+    const task = await Task.create(normalizeTaskPayload(req.body));
     emitToEvent(task.eventId, 'task:updated', { action: 'created', task });
     ApiResponse.created(res, 'Task created', task);
 });
 
 export const update = asyncHandler(async (req, res) => {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const task = await Task.findByIdAndUpdate(req.params.id, normalizeTaskPayload(req.body), { new: true, runValidators: true });
     if (!task) throw ApiError.notFound('Task not found');
     emitToEvent(task.eventId, 'task:updated', { action: 'updated', task });
     ApiResponse.success(res, 'Task updated', task);
@@ -38,6 +45,24 @@ export const updateStatus = asyncHandler(async (req, res) => {
     if (!task) throw ApiError.notFound('Task not found');
     emitToEvent(task.eventId, 'task:updated', { action: 'status-changed', task });
     ApiResponse.success(res, 'Task status updated', task);
+});
+
+export const reorder = asyncHandler(async (req, res) => {
+    const { tasks } = req.body;
+
+    await Task.bulkWrite(
+        tasks.map((task) => ({
+            updateOne: {
+                filter: { _id: task.id },
+                update: {
+                    status: task.status,
+                    order: task.order,
+                },
+            },
+        }))
+    );
+
+    ApiResponse.success(res, 'Tasks reordered');
 });
 
 export const remove = asyncHandler(async (req, res) => {

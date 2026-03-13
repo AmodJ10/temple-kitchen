@@ -96,6 +96,7 @@ export const meetingAPI = {
 export const taskAPI = {
     getByEvent: (eventId) => api.get(`/tasks/event/${eventId}`),
     getPending: () => api.get('/tasks/pending'),
+    reorder: (tasks) => api.post('/tasks/reorder', { tasks }),
     create: (data) => api.post('/tasks', data),
     update: (id, data) => api.put(`/tasks/${id}`, data),
     updateStatus: (id, status) => api.patch(`/tasks/${id}/status`, { status }),

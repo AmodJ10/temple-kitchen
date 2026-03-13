@@ -22,7 +22,10 @@ export const create = asyncHandler(async (req, res) => {
     // Check for duplicate
     const existing = await Attendance.findOne({
         eventDayId: req.body.eventDayId,
-        sevekariId: req.body.sevekariId,
+        $or: [
+            { sevekariId: req.body.sevekariId },
+            { sevekariId: null, sevekariName: req.body.sevekariName },
+        ],
     });
     if (existing) throw ApiError.badRequest('Sevekari already marked present for this day');
 
@@ -33,24 +36,58 @@ export const create = asyncHandler(async (req, res) => {
 
 export const bulkCreate = asyncHandler(async (req, res) => {
     const { eventDayId, eventId, sevekariIds } = req.body;
-    const records = sevekariIds.map((s) => ({
-        eventDayId,
-        eventId,
-        sevekariId: s.id,
-        sevekariName: s.name,
-    }));
+    const requestedRecords = Array.from(
+        new Map(
+            sevekariIds.map((sevekari) => [
+                sevekari.id,
+                {
+                    eventDayId,
+                    eventId,
+                    sevekariId: sevekari.id,
+                    sevekariName: sevekari.name,
+                },
+            ])
+        ).values()
+    );
 
-    // Filter out existing
-    const existingIds = (await Attendance.find({ eventDayId, sevekariId: { $in: sevekariIds.map(s => s.id) } }))
-        .map((a) => a.sevekariId.toString());
-    const newRecords = records.filter((r) => !existingIds.includes(r.sevekariId));
+    const existingAttendances = await Attendance.find({ eventDayId }).select('sevekariId sevekariName');
+    const existingIds = new Set(
+        existingAttendances
+            .map((attendance) => attendance.sevekariId?.toString())
+            .filter(Boolean)
+    );
+    const existingNames = new Set(
+        existingAttendances
+            .map((attendance) => attendance.sevekariName?.trim().toLowerCase())
+            .filter(Boolean)
+    );
 
-    if (newRecords.length > 0) {
-        await Attendance.insertMany(newRecords);
+    const recordsToCreate = requestedRecords.filter((record) => {
+        const normalizedName = record.sevekariName.trim().toLowerCase();
+        return !existingIds.has(record.sevekariId) && !existingNames.has(normalizedName);
+    });
+
+    let createdCount = 0;
+    if (recordsToCreate.length > 0) {
+        const result = await Attendance.bulkWrite(
+            recordsToCreate.map((record) => ({
+                updateOne: {
+                    filter: {
+                        eventDayId: record.eventDayId,
+                        sevekariId: record.sevekariId,
+                    },
+                    update: { $setOnInsert: record },
+                    upsert: true,
+                },
+            })),
+            { ordered: false }
+        );
+
+        createdCount = result.upsertedCount || 0;
     }
 
     emitToEvent(eventId, 'attendance:updated', { action: 'bulk-created' });
-    ApiResponse.created(res, `${newRecords.length} attendance records created`);
+    ApiResponse.created(res, `${createdCount} attendance records created`);
 });
 
 export const update = asyncHandler(async (req, res) => {

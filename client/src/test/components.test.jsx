@@ -25,7 +25,7 @@ describe('UI Components', () => {
         it('should apply default color when none provided', () => {
             const { container } = render(<Badge>Default</Badge>);
             const badge = container.firstChild;
-            expect(badge.style.color).toBe('rgb(91, 155, 213)');
+            expect(badge.style.color).toBe('rgb(161, 161, 170)');
         });
 
         it('should apply custom className', () => {

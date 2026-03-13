@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ClipboardList, Plus, Trash2, Edit2, Calendar, GripVertical, User } from 'lucide-react';
+import { ClipboardList, Plus, Trash2, Edit2, Calendar, GripVertical, User, Play, CheckCircle2, RotateCcw } from 'lucide-react';
 import {
     DndContext,
     closestCorners,
@@ -28,6 +28,7 @@ import Badge from '../ui/Badge';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import Skeleton from '../ui/Skeleton';
 import { formatDate } from '../../utils/formatters';
+import useAuthStore from '../../store/authStore';
 
 const COLUMNS = [
     { id: 'todo', title: 'To Do', color: '#E8621A' },        // Saffron
@@ -35,7 +36,58 @@ const COLUMNS = [
     { id: 'done', title: 'Done', color: '#2ECC71' }          // Green
 ];
 
-const SortableTask = ({ task, onEdit, onDelete }) => {
+const TASK_STATUS_ACTIONS = {
+    todo: [
+        { status: 'in-progress', label: 'Start', Icon: Play },
+        { status: 'done', label: 'Done', Icon: CheckCircle2 },
+    ],
+    'in-progress': [
+        { status: 'todo', label: 'To Do', Icon: RotateCcw },
+        { status: 'done', label: 'Done', Icon: CheckCircle2 },
+    ],
+    done: [
+        { status: 'todo', label: 'Reopen', Icon: RotateCcw },
+    ],
+};
+
+const buildOrderedTasks = (tasks) => tasks.map((task, index) => ({ ...task, order: index }));
+
+const moveTaskToColumnEnd = (tasks, taskId, targetStatus) => {
+    const nextTasks = tasks.map((task) => ({ ...task }));
+    const sourceIndex = nextTasks.findIndex((task) => task._id === taskId);
+
+    if (sourceIndex === -1) {
+        return tasks;
+    }
+
+    const [movedTask] = nextTasks.splice(sourceIndex, 1);
+    const nextTask = { ...movedTask, status: targetStatus };
+    const lastTargetIndex = nextTasks.reduce((index, task, currentIndex) => (
+        task.status === targetStatus ? currentIndex : index
+    ), -1);
+
+    nextTasks.splice(lastTargetIndex + 1, 0, nextTask);
+    return buildOrderedTasks(nextTasks);
+};
+
+const reorderTasksFromDrag = (tasks, activeId, overId, overColumnId) => {
+    const activeIndex = tasks.findIndex((task) => task._id === activeId);
+    if (activeIndex === -1) {
+        return tasks;
+    }
+
+    const overIndex = tasks.findIndex((task) => task._id === overId);
+    const nextTasks = [...tasks];
+    nextTasks[activeIndex] = { ...nextTasks[activeIndex], status: overColumnId };
+
+    const reorderedTasks = overIndex === -1
+        ? nextTasks
+        : arrayMove(nextTasks, activeIndex, overIndex);
+
+    return buildOrderedTasks(reorderedTasks);
+};
+
+const SortableTask = ({ task, onEdit, onDelete, onStatusChange, isStatusUpdating, canEdit }) => {
     const {
         attributes,
         listeners,
@@ -57,13 +109,13 @@ const SortableTask = ({ task, onEdit, onDelete }) => {
             <Card className="p-3 border-[var(--color-border)] hover:border-[var(--color-primary)] transition-all">
                 <div className="flex justify-between items-start gap-2 mb-2">
                     <div className="flex items-start gap-2">
-                        <button
+                        {canEdit && <button
                             className="mt-0.5 text-[var(--color-text-muted)] cursor-grab active:cursor-grabbing hover:text-[var(--color-primary)] shrink-0"
                             {...attributes}
                             {...listeners}
                         >
                             <GripVertical size={16} />
-                        </button>
+                        </button>}
                         <h5 className="font-medium text-sm text-[var(--color-text-primary)] leading-tight">{task.title}</h5>
                     </div>
                     <Badge color={task.priority === 'high' ? '#E74C3C' : task.priority === 'medium' ? '#F39C12' : '#95A5A6'} className="shrink-0 text-[10px] px-1.5 py-0 h-4">
@@ -88,18 +140,34 @@ const SortableTask = ({ task, onEdit, onDelete }) => {
                             </span>
                         )}
                     </div>
+
+                    {canEdit && (
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                            {TASK_STATUS_ACTIONS[task.status]?.map(({ status, label, Icon }) => (
+                                <button
+                                    key={status}
+                                    type="button"
+                                    onClick={() => onStatusChange(task, status)}
+                                    disabled={isStatusUpdating}
+                                    className="inline-flex items-center gap-1 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-card)] px-2 py-1 text-[11px] font-medium text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <Icon size={12} /> {label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--color-bg-card)] p-1 rounded-md shadow-sm border border-[var(--color-border)]">
+                {canEdit && <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--color-bg-card)] p-1 rounded-md shadow-sm border border-[var(--color-border)]">
                     <button onClick={() => onEdit(task)} className="p-1 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] rounded transition-colors"><Edit2 size={12} /></button>
                     <button onClick={() => onDelete(task)} className="p-1 text-[var(--color-text-muted)] hover:text-red-500 rounded transition-colors"><Trash2 size={12} /></button>
-                </div>
+                </div>}
             </Card>
         </div>
     );
 };
 
-const DroppableColumn = ({ column, tasks, onEdit, onDelete }) => {
+const DroppableColumn = ({ column, tasks, onEdit, onDelete, onStatusChange, statusUpdatingId, canEdit }) => {
     const { setNodeRef } = useDroppable({
         id: column.id,
     });
@@ -121,7 +189,15 @@ const DroppableColumn = ({ column, tasks, onEdit, onDelete }) => {
             >
                 <div className="flex-1">
                     {tasks.map(task => (
-                        <SortableTask key={task._id} task={task} onEdit={onEdit} onDelete={onDelete} />
+                        <SortableTask
+                            key={task._id}
+                            task={task}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            onStatusChange={onStatusChange}
+                            isStatusUpdating={statusUpdatingId === task._id}
+                            canEdit={canEdit}
+                        />
                     ))}
                 </div>
             </SortableContext>
@@ -155,8 +231,10 @@ const TaskForm = ({ event, initial, onSubmit, onCancel, loading }) => {
 
         onSubmit({
             ...form,
+            assignedTo: form.assignedTo || undefined,
+            dueDate: form.dueDate || undefined,
             eventId: event._id,
-            assignedToName
+            assignedToName: form.assignedTo ? assignedToName : ''
         });
     };
 
@@ -214,6 +292,7 @@ const TaskForm = ({ event, initial, onSubmit, onCancel, loading }) => {
                     onChange={(e) => handleChange('description', e.target.value)}
                     rows={2}
                     className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+                    placeholder="Describe the task outcome or dependencies"
                 />
             </div>
 
@@ -225,6 +304,7 @@ const TaskForm = ({ event, initial, onSubmit, onCancel, loading }) => {
                     rows={3}
 
                     className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+                    placeholder="Add step-by-step instructions or references"
                 />
             </div>
 
@@ -244,6 +324,8 @@ const TasksTab = ({ event }) => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+    const canEdit = useAuthStore((s) => s.canEdit());
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
@@ -272,6 +354,25 @@ const TasksTab = ({ event }) => {
         if (event?._id) fetchTasks();
     }, [event?._id]);
 
+    const persistBoardState = async (nextTasks, previousTasks, successMessage) => {
+        setTasks(nextTasks);
+
+        try {
+            await taskAPI.reorder(nextTasks.map((task) => ({
+                id: task._id,
+                status: task.status,
+                order: task.order,
+            })));
+
+            if (successMessage) {
+                toast.success(successMessage);
+            }
+        } catch (error) {
+            setTasks(previousTasks);
+            toast.error('Failed to update task board');
+        }
+    };
+
     const handleDragOver = (e) => {
         const { active, over } = e;
         if (!over) return;
@@ -282,14 +383,7 @@ const TasksTab = ({ event }) => {
 
         if (!activeTask || activeTask.status === overColumnId) return;
 
-        setTasks((prev) => {
-            const activeIndex = prev.findIndex(t => t._id === active.id);
-            const overIndex = overTask ? prev.findIndex(t => t._id === over.id) : prev.length;
-
-            const newTasks = [...prev];
-            newTasks[activeIndex] = { ...activeTask, status: overColumnId };
-            return arrayMove(newTasks, activeIndex, overIndex);
-        });
+        setTasks((prev) => reorderTasksFromDrag(prev, active.id, over.id, overColumnId));
     };
 
     const handleDragEnd = async (e) => {
@@ -299,26 +393,32 @@ const TasksTab = ({ event }) => {
         const activeTask = tasks.find(t => t._id === active.id);
         const overTask = tasks.find(t => t._id === over.id);
         const overColumnId = overTask ? overTask.status : over.id;
+        const sourceColumnId = active.data.current?.sortable?.containerId || activeTask?.status;
 
-        setTasks((prev) => {
-            const activeIndex = prev.findIndex(t => t._id === active.id);
-            const overIndex = overTask ? prev.findIndex(t => t._id === over.id) : prev.length;
+        const previousTasks = tasks.map((task) => ({ ...task }));
+        const nextTasks = buildOrderedTasks(reorderTasksFromDrag(tasks, active.id, over.id, overColumnId));
+        const hasBoardChanged =
+            sourceColumnId !== overColumnId ||
+            JSON.stringify(previousTasks.map(({ _id, status, order }) => ({ _id, status, order }))) !== JSON.stringify(nextTasks.map(({ _id, status, order }) => ({ _id, status, order })));
 
-            if (activeIndex !== overIndex) {
-                return arrayMove(prev, activeIndex, overIndex);
-            }
-            return prev;
-        });
+        if (activeTask && hasBoardChanged) {
+            const successMessage = sourceColumnId !== overColumnId ? 'Task status updated' : 'Task order updated';
+            await persistBoardState(nextTasks, previousTasks, successMessage);
+        }
+    };
 
-        // Try to update DB. The visual state was already adjusted by handleDragOver or onDragEnd arrayMove
-        if (activeTask && activeTask.status !== overColumnId) {
-            try {
-                await taskAPI.update(active.id, { status: overColumnId });
-                toast.success('Task status updated');
-            } catch (error) {
-                toast.error('Failed to move task');
-                fetchTasks();
-            }
+    const handleStatusChange = async (task, status) => {
+        if (task.status === status) return;
+
+        const previousTasks = tasks.map((item) => ({ ...item }));
+        const nextTasks = moveTaskToColumnEnd(tasks, task._id, status);
+        setStatusUpdatingId(task._id);
+
+        try {
+            await persistBoardState(nextTasks, previousTasks, 'Task status updated');
+        } catch (error) {
+        } finally {
+            setStatusUpdatingId(null);
         }
     };
 
@@ -336,7 +436,9 @@ const TasksTab = ({ event }) => {
             setEditingTask(null);
             fetchTasks();
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to save task');
+            const errorDetails = error.response?.data?.errors || [];
+            const detailedMessage = errorDetails[0]?.message;
+            toast.error(detailedMessage || error.response?.data?.message || 'Failed to save task');
         } finally {
             setSubmitting(false);
         }
@@ -361,14 +463,14 @@ const TasksTab = ({ event }) => {
         <div className="space-y-6">
             <div className="flex justify-between items-center hidden sm:flex">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Preparation Tasks Kanban</h3>
-                <Button onClick={() => { setEditingTask(null); setIsFormOpen(true); }}>
+                {canEdit && <Button onClick={() => { setEditingTask(null); setIsFormOpen(true); }}>
                     <Plus size={16} /> New Task
-                </Button>
+                </Button>}
             </div>
 
-            <Button onClick={() => { setEditingTask(null); setIsFormOpen(true); }} className="w-full sm:hidden">
+            {canEdit && <Button onClick={() => { setEditingTask(null); setIsFormOpen(true); }} className="w-full sm:hidden">
                 <Plus size={16} /> New Task
-            </Button>
+            </Button>}
 
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -380,16 +482,19 @@ const TasksTab = ({ event }) => {
                 <div className="overflow-x-auto pb-4 custom-scrollbar">
                     <div className="inline-grid grid-flow-col auto-cols-[300px] gap-6 min-w-full">
                         <DndContext
-                            sensors={sensors}
+                            sensors={canEdit ? sensors : []}
                             collisionDetection={closestCorners}
-                            onDragOver={handleDragOver}
-                            onDragEnd={handleDragEnd}
+                            onDragOver={canEdit ? handleDragOver : undefined}
+                            onDragEnd={canEdit ? handleDragEnd : undefined}
                         >
                             {COLUMNS.map(column => (
                                 <DroppableColumn
                                     key={column.id}
                                     column={column}
                                     tasks={tasks.filter(t => t.status === column.id)}
+                                    statusUpdatingId={statusUpdatingId}
+                                    canEdit={canEdit}
+                                    onStatusChange={handleStatusChange}
                                     onEdit={t => { setEditingTask(t); setIsFormOpen(true); }}
                                     onDelete={t => setDeletingTask(t)}
                                 />
@@ -399,7 +504,7 @@ const TasksTab = ({ event }) => {
                 </div>
             )}
 
-            <Modal
+            {canEdit && <Modal
                 isOpen={isFormOpen}
                 onClose={() => !submitting && setIsFormOpen(false)}
                 title={editingTask ? "Edit Task" : "Create Task"}
@@ -412,9 +517,9 @@ const TasksTab = ({ event }) => {
                     onCancel={() => setIsFormOpen(false)}
                     loading={submitting}
                 />
-            </Modal>
+            </Modal>}
 
-            <ConfirmDialog
+            {canEdit && <ConfirmDialog
                 isOpen={!!deletingTask}
                 onClose={() => setDeletingTask(null)}
                 onConfirm={handleDelete}
@@ -423,7 +528,7 @@ const TasksTab = ({ event }) => {
                 confirmText="Delete"
                 danger
                 loading={submitting}
-            />
+            />}
         </div>
     );
 };

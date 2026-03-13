@@ -1,7 +1,29 @@
 import axios from 'axios';
 import useAuthStore from '../store/authStore.js';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
+
+const resolveApiBase = (configuredBase) => {
+    if (!configuredBase || !import.meta.env.DEV) {
+        return configuredBase || '/api/v1';
+    }
+
+    try {
+        const parsedUrl = new URL(configuredBase, globalThis.location?.origin);
+        const currentHostname = globalThis.location?.hostname;
+
+        if (LOCAL_HOSTNAMES.has(parsedUrl.hostname) && LOCAL_HOSTNAMES.has(currentHostname || '')) {
+            return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}` || '/api/v1';
+        }
+
+        return parsedUrl.toString();
+    } catch {
+        return configuredBase;
+    }
+};
+
+const API_BASE = resolveApiBase(import.meta.env.VITE_API_BASE_URL?.trim());
+const AUTH_BYPASS_ROUTES = [/\/auth\/refresh$/, /\/auth\/login$/, /\/auth\/logout$/];
 
 const api = axios.create({
     baseURL: API_BASE,
@@ -9,48 +31,28 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' },
 });
 
-// Response interceptor — auto refresh on 401
-let isRefreshing = false;
-let failedQueue = [];
+let refreshRequest = null;
 
-const processQueue = (error) => {
-    failedQueue.forEach((prom) => {
-        if (error) prom.reject(error);
-        else prom.resolve();
-    });
-    failedQueue = [];
-};
+const shouldBypassRefresh = (requestUrl = '') => AUTH_BYPASS_ROUTES.some((pattern) => pattern.test(requestUrl));
 
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const originalRequest = error.config;
+        const originalRequest = error.config ?? {};
 
         // If the original request was for login, logout, or refresh itself, don't intercept, just reject
-        if (
-            originalRequest.url.includes('/auth/refresh') ||
-            originalRequest.url.includes('/auth/login') ||
-            originalRequest.url.includes('/auth/logout')
-        ) {
+        if (shouldBypassRefresh(originalRequest.url)) {
             return Promise.reject(error);
         }
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
-                return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                }).then(() => api(originalRequest));
-            }
-
             originalRequest._retry = true;
-            isRefreshing = true;
 
             try {
-                await api.post('/auth/refresh');
-                processQueue(null);
+                refreshRequest ??= api.post('/auth/refresh');
+                await refreshRequest;
                 return api(originalRequest);
             } catch (refreshError) {
-                processQueue(refreshError);
                 useAuthStore.getState().logout();
 
                 // Only hard-redirect if we aren't already on the login page to prevent infinite reload loops
@@ -60,7 +62,7 @@ api.interceptors.response.use(
 
                 return Promise.reject(refreshError);
             } finally {
-                isRefreshing = false;
+                refreshRequest = null;
             }
         }
 

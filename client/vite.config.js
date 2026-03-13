@@ -4,6 +4,21 @@ import path from 'path';
 
 export default defineConfig({
     plugins: [react()],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules/@react-pdf/renderer')) return 'pdf-renderer';
+                    if (id.includes('node_modules/recharts')) return 'charts';
+                    if (id.includes('node_modules/react-grid-layout')) return 'grid-layout';
+                    if (id.includes('node_modules/@dnd-kit')) return 'dnd-kit';
+                    if (id.includes('node_modules/framer-motion')) return 'motion';
+                    if (id.includes('node_modules/socket.io-client')) return 'socket';
+                    if (id.includes('node_modules/lucide-react')) return 'icons';
+                },
+            },
+        },
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),

@@ -58,5 +58,5 @@ export const remove = asyncHandler(async (req, res) => {
 
     await userToDelete.deleteOne();
 
-    ApiResponse.success(res, 'User deleted', { _id: user._id });
+    ApiResponse.success(res, 'User deleted', { _id: userToDelete._id });
 });

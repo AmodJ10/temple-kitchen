@@ -25,7 +25,7 @@ const BottomNav = () => {
 
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-bg-card)]/95 backdrop-blur-xl border-t border-[var(--color-border)] safe-area-pb">
-            <div className="flex items-center justify-around h-14 px-1">
+            <div className="flex items-center justify-around h-16 px-1">
                 {allItems.map(({ path, label, icon: Icon }) => {
                     const isActive = location.pathname.startsWith(path);
                     return (
@@ -33,14 +33,16 @@ const BottomNav = () => {
                             key={path}
                             to={path}
                             className={`
-                                flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-lg transition-colors duration-150 min-w-0
+                                flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-lg
+                                transition-colors duration-[var(--duration-fast)] [transition-timing-function:var(--ease-expo)]
+                                min-w-0 min-h-[48px]
                                 ${isActive
                                     ? 'text-[var(--color-primary)]'
                                     : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'
                                 }
                             `}
                         >
-                            <Icon size={18} />
+                            <Icon size={20} />
                             <span className="text-[10px] font-medium truncate">{label}</span>
                         </NavLink>
                     );

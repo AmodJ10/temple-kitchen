@@ -1,14 +1,13 @@
-const Badge = ({ children, color = '#A1A1AA', className = '' }) => {
+const Badge = ({ children, color = 'oklch(55% 0.01 65)', className = '' }) => {
     return (
         <span
             className={`
-                inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium
+                inline-flex items-center px-2 py-0.5 rounded-md text-[var(--text-xs)] font-medium
                 ${className}
             `}
             style={{
-                backgroundColor: `${color}12`,
+                backgroundColor: `color-mix(in oklch, ${color} 14%, transparent)`,
                 color: color,
-                border: `1px solid ${color}20`,
             }}
         >
             {children}

@@ -11,6 +11,7 @@ import Skeleton from '../ui/Skeleton';
 import Modal from '../ui/Modal';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import { formatTime } from '../../utils/formatters';
+import useAuthStore from '../../store/authStore';
 
 const ROLES = ['Cooking', 'Serving', 'Cleaning', 'Decor', 'Coordination', 'Other'];
 
@@ -31,6 +32,7 @@ const AttendanceTab = ({ event, selectedDayId }) => {
 
     // Delete State
     const [deletingRecord, setDeletingRecord] = useState(null);
+    const canEdit = useAuthStore((s) => s.canEdit());
 
     const fetchData = async () => {
         if (!selectedDayId) return;
@@ -136,9 +138,16 @@ const AttendanceTab = ({ event, selectedDayId }) => {
     };
 
     const availableSevekaris = useMemo(() => {
-        const attendeeIds = new Set(attendees.map(a => a.sevekariId?._id || a.sevekariId));
+        const attendeeIds = new Set(attendees.map((attendee) => String(attendee.sevekariId?._id || attendee.sevekariId || '')));
+        const attendeeNames = new Set(
+            attendees
+                .map((attendee) => attendee.sevekariName?.trim().toLowerCase())
+                .filter(Boolean)
+        );
+
         return allSevekaris.filter(s =>
-            !attendeeIds.has(s._id) &&
+            !attendeeIds.has(String(s._id)) &&
+            !attendeeNames.has(s.name.trim().toLowerCase()) &&
             (s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (s.phone && s.phone.includes(searchQuery)))
         );
@@ -161,14 +170,14 @@ const AttendanceTab = ({ event, selectedDayId }) => {
                         Total present: {attendees.filter(a => a.checkInTime).length} / {attendees.length} assigned
                     </p>
                 </div>
-                <Button onClick={() => setIsAddModalOpen(true)}>
+                {canEdit && <Button onClick={() => setIsAddModalOpen(true)}>
                     <UserPlus size={16} /> Assign Sevekaris
-                </Button>
+                </Button>}
             </div>
 
-            <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:hidden">
+            {canEdit && <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:hidden">
                 <UserPlus size={16} /> Assign Sevekaris
-            </Button>
+            </Button>}
 
             {loading ? (
                 <div className="space-y-3">
@@ -181,11 +190,11 @@ const AttendanceTab = ({ event, selectedDayId }) => {
                     icon={Users}
                     title="No sevekaris assigned"
                     description="Assign sevekaris to this event day to track their attendance and roles."
-                    action={
+                    action={canEdit ? (
                         <Button onClick={() => setIsAddModalOpen(true)}>
                             <UserPlus size={16} /> Assign Sevekaris
                         </Button>
-                    }
+                    ) : null}
                 />
             ) : (
                 <Card className="overflow-hidden">
@@ -207,7 +216,7 @@ const AttendanceTab = ({ event, selectedDayId }) => {
                                             <p className="font-medium text-[var(--color-text-primary)]">{record.sevekariName}</p>
                                         </td>
                                         <td className="px-4 py-3">
-                                            {editingRole === record._id ? (
+                                            {canEdit && editingRole === record._id ? (
                                                 <div className="flex items-center gap-2">
                                                     <select
                                                         className="px-2 py-1 text-sm rounded bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary)] w-32"
@@ -227,15 +236,19 @@ const AttendanceTab = ({ event, selectedDayId }) => {
                                                 </div>
                                             ) : (
                                                 <div
-                                                    className="flex items-center gap-2 cursor-pointer group"
-                                                    onClick={() => { setEditingRole(record._id); setRoleInput(record.role || ''); }}
+                                                    className={`flex items-center gap-2 group ${canEdit ? 'cursor-pointer' : ''}`}
+                                                    onClick={() => {
+                                                        if (!canEdit) return;
+                                                        setEditingRole(record._id);
+                                                        setRoleInput(record.role || '');
+                                                    }}
                                                 >
                                                     {record.role ? (
                                                         <Badge color="rgba(155, 89, 182, 0.2)" className="text-purple-400 border border-purple-500/20">{record.role}</Badge>
                                                     ) : (
                                                         <span className="text-sm text-[var(--color-text-muted)] italic">No role</span>
                                                     )}
-                                                    <span className="opacity-0 group-hover:opacity-100 text-[var(--color-text-muted)] text-xs">Edit</span>
+                                                    {canEdit && <span className="opacity-0 group-hover:opacity-100 text-[var(--color-text-muted)] text-xs">Edit</span>}
                                                 </div>
                                             )}
                                         </td>
@@ -245,10 +258,12 @@ const AttendanceTab = ({ event, selectedDayId }) => {
                                                     <Clock size={14} />
                                                     {formatTime(record.checkInTime)}
                                                 </div>
-                                            ) : (
+                                            ) : canEdit ? (
                                                 <Button size="sm" variant="outline" onClick={() => handleTimeMark(record, 'in')}>
                                                     Mark In
                                                 </Button>
+                                            ) : (
+                                                <span className="text-sm text-[var(--color-text-muted)]">-</span>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-center">
@@ -259,19 +274,21 @@ const AttendanceTab = ({ event, selectedDayId }) => {
                                                     <Clock size={14} />
                                                     {formatTime(record.checkOutTime)}
                                                 </div>
-                                            ) : (
+                                            ) : canEdit ? (
                                                 <Button size="sm" variant="outline" onClick={() => handleTimeMark(record, 'out')}>
                                                     Mark Out
                                                 </Button>
+                                            ) : (
+                                                <span className="text-sm text-[var(--color-text-muted)]">Pending</span>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                            <button
+                                            {canEdit && <button
                                                 onClick={() => setDeletingRecord(record)}
                                                 className="p-1.5 text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                                             >
                                                 <Trash2 size={16} />
-                                            </button>
+                                            </button>}
                                         </td>
                                     </tr>
                                 ))}
@@ -282,11 +299,11 @@ const AttendanceTab = ({ event, selectedDayId }) => {
             )}
 
             {/* Bulk Add Modal */}
-            <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Assign Sevekaris" size="md">
+            {canEdit && <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="Assign Sevekaris" size="md">
                 <div className="space-y-4">
                     <Input
-
                         icon={Search}
+                        placeholder="Search sevekaris by name or phone"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -324,9 +341,9 @@ const AttendanceTab = ({ event, selectedDayId }) => {
                         </div>
                     </div>
                 </div>
-            </Modal>
+            </Modal>}
 
-            <ConfirmDialog
+            {canEdit && <ConfirmDialog
                 isOpen={!!deletingRecord}
                 onClose={() => setDeletingRecord(null)}
                 onConfirm={handleDelete}
@@ -335,7 +352,7 @@ const AttendanceTab = ({ event, selectedDayId }) => {
                 confirmText="Remove"
                 danger
                 loading={submitting}
-            />
+            />}
         </div>
     );
 };

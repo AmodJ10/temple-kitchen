@@ -13,6 +13,7 @@ import EmptyState from '../ui/EmptyState';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import Skeleton from '../ui/Skeleton';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import useAuthStore from '../../store/authStore';
 
 const PAYMENT_STATUSES = [
     { value: 'pending', label: 'Pending', color: '#F1C40F' },
@@ -66,12 +67,14 @@ const ProcurementForm = ({ event, selectedDayId, initial, onSubmit, onCancel, lo
 
             // Auto-calculate totalPrice
             if (field === 'quantity' || field === 'ratePerUnit') {
-                item.totalPrice = Number((item.quantity * item.ratePerUnit).toFixed(2));
+                item.totalPrice = item.quantity === '' || item.ratePerUnit === ''
+                    ? ''
+                    : Number((Number(item.quantity) * Number(item.ratePerUnit)).toFixed(2));
             } else if (field === 'totalPrice') {
                 // If they manually override total price, don't auto-calculate it
             }
 
-            const grandTotal = newItems.reduce((sum, i) => sum + i.totalPrice, 0);
+            const grandTotal = newItems.reduce((sum, i) => sum + Number(i.totalPrice || 0), 0);
             return { ...prev, items: newItems, grandTotal };
         });
     };
@@ -80,6 +83,14 @@ const ProcurementForm = ({ event, selectedDayId, initial, onSubmit, onCancel, lo
         e.preventDefault();
         onSubmit({
             ...form,
+            grandTotal: Number(form.grandTotal || 0),
+            amountPaid: Number(form.amountPaid || 0),
+            items: form.items.map((item) => ({
+                ...item,
+                quantity: Number(item.quantity || 0),
+                ratePerUnit: Number(item.ratePerUnit || 0),
+                totalPrice: Number(item.totalPrice || 0),
+            })),
             eventId: event._id,
             eventDayId: selectedDayId,
         });
@@ -160,8 +171,8 @@ const ProcurementForm = ({ event, selectedDayId, initial, onSubmit, onCancel, lo
                                 <div className="w-full sm:w-24 shrink-0">
                                     <Input
                                         type="number" min={0} step="0.01" placeholder="Total"
-                                        value={item.totalPrice}
-                                        onChange={(e) => handleItemChange(idx, 'totalPrice', Number(e.target.value))}
+                                        value={item.totalPrice === '' ? '' : item.totalPrice}
+                                        onChange={(e) => handleItemChange(idx, 'totalPrice', e.target.value === '' ? '' : Number(e.target.value))}
                                         required
                                     />
                                 </div>
@@ -198,7 +209,7 @@ const ProcurementForm = ({ event, selectedDayId, initial, onSubmit, onCancel, lo
                     label="Amount Paid (₹)"
                     type="number" min={0} step="0.01"
                     value={form.amountPaid}
-                    onChange={(e) => handleChange('amountPaid', Number(e.target.value))}
+                    onChange={(e) => handleChange('amountPaid', e.target.value === '' ? '' : Number(e.target.value))}
                 />
             </div>
 
@@ -229,6 +240,7 @@ const ProcurementTab = ({ event, selectedDayId }) => {
     const [procurements, setProcurements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const canEdit = useAuthStore((s) => s.canEdit());
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingRecord, setEditingRecord] = useState(null);
@@ -323,14 +335,14 @@ const ProcurementTab = ({ event, selectedDayId }) => {
                         Total cost: {formatCurrency(procurements.reduce((sum, p) => sum + p.grandTotal, 0))}
                     </p>
                 </div>
-                <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }}>
+                {canEdit && <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }}>
                     <Plus size={16} /> Add Purchase
-                </Button>
+                </Button>}
             </div>
 
-            <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }} className="w-full sm:hidden">
+            {canEdit && <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }} className="w-full sm:hidden">
                 <Plus size={16} /> Add Purchase
-            </Button>
+            </Button>}
 
             {loading ? (
                 <div className="space-y-3">
@@ -342,11 +354,11 @@ const ProcurementTab = ({ event, selectedDayId }) => {
                     icon={ShoppingBag}
                     title="No purchases recorded"
                     description="Track vendor bills and receipts for this event day"
-                    action={
+                    action={canEdit ? (
                         <Button onClick={() => { setEditingRecord(null); setIsFormOpen(true); }}>
                             <Plus size={16} /> Add Purchase
                         </Button>
-                    }
+                    ) : null}
                 />
             ) : (
                 <div className="space-y-4">
@@ -383,7 +395,7 @@ const ProcurementTab = ({ event, selectedDayId }) => {
                                     )}
                                 </div>
 
-                                <div className="flex flex-row md:flex-col items-center justify-end gap-2 border-t md:border-t-0 md:border-l border-[var(--color-border)] pt-4 md:pt-0 md:pl-4">
+                                {canEdit && <div className="flex flex-row md:flex-col items-center justify-end gap-2 border-t md:border-t-0 md:border-l border-[var(--color-border)] pt-4 md:pt-0 md:pl-4">
                                     {record.receiptUrl ? (
                                         <a
                                             href={record.receiptUrl}
@@ -418,14 +430,14 @@ const ProcurementTab = ({ event, selectedDayId }) => {
                                     >
                                         <Trash2 size={16} /> Delete Record
                                     </button>
-                                </div>
+                                </div>}
                             </Card>
                         );
                     })}
                 </div>
             )}
 
-            <Modal
+            {canEdit && <Modal
                 isOpen={isFormOpen}
                 onClose={() => !submitting && setIsFormOpen(false)}
                 title={editingRecord ? "Edit Purchase" : "Record Purchase"}
@@ -439,9 +451,9 @@ const ProcurementTab = ({ event, selectedDayId }) => {
                     onCancel={() => setIsFormOpen(false)}
                     loading={submitting}
                 />
-            </Modal>
+            </Modal>}
 
-            <ConfirmDialog
+            {canEdit && <ConfirmDialog
                 isOpen={!!deletingRecord}
                 onClose={() => setDeletingRecord(null)}
                 onConfirm={handleDelete}
@@ -450,7 +462,7 @@ const ProcurementTab = ({ event, selectedDayId }) => {
                 confirmText="Delete"
                 danger
                 loading={submitting}
-            />
+            />}
         </div>
     );
 };

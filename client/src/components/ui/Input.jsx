@@ -4,7 +4,7 @@ const Input = forwardRef(({ label, error, className = '', ...props }, ref) => {
     return (
         <div className="w-full">
             {label && (
-                <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5 uppercase tracking-wider">
+                <label className="block text-[var(--text-xs)] font-medium text-[var(--color-text-muted)] mb-1.5 uppercase tracking-wider">
                     {label}
                 </label>
             )}
@@ -14,14 +14,16 @@ const Input = forwardRef(({ label, error, className = '', ...props }, ref) => {
                     w-full px-3.5 py-2.5 rounded-lg border border-[var(--color-border)]
                     bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]
                     placeholder:text-[var(--color-text-muted)]
-                    focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]
-                    transition-all duration-150 ease-out text-sm
-                    ${error ? 'border-red-400/50 focus:ring-red-400' : ''}
+                    focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]
+                    transition-[border-color,box-shadow] duration-[var(--duration-fast)]
+                    [transition-timing-function:var(--ease-expo)]
+                    text-[var(--text-sm)] min-h-[44px]
+                    ${error ? 'border-[var(--color-danger)] focus:ring-[var(--color-danger)]' : ''}
                     ${className}
                 `}
                 {...props}
             />
-            {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+            {error && <p className="text-[var(--color-danger)] text-[var(--text-xs)] mt-1">{error}</p>}
         </div>
     );
 });

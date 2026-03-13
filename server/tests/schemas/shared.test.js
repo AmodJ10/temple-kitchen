@@ -9,8 +9,9 @@ import {
     dishSchema,
     procurementSchema,
     taskSchema,
+    taskReorderSchema,
     stockAdjustmentSchema,
-} from '../../../shared/index.js';
+} from '../../src/schemas.js';
 
 describe('Shared Zod Schemas', () => {
     describe('registerSchema', () => {
@@ -45,18 +46,19 @@ describe('Shared Zod Schemas', () => {
             const result = registerSchema.safeParse({
                 name: 'Test User',
                 email: 'test@example.com',
-                password: '12345',
+                password: '1234567',
             });
             expect(result.success).toBe(false);
         });
 
-        it('should default role to viewer', () => {
+        it('should normalize emails and default role to user', () => {
             const result = registerSchema.safeParse({
                 name: 'Test User',
-                email: 'test@example.com',
+                email: 'TEST@EXAMPLE.COM',
                 password: 'password123',
             });
-            expect(result.data.role).toBe('viewer');
+            expect(result.data.email).toBe('test@example.com');
+            expect(result.data.role).toBe('user');
         });
     });
 
@@ -174,6 +176,37 @@ describe('Shared Zod Schemas', () => {
                 title: 'Buy supplies',
             });
             expect(result.data.source).toBe('manual');
+        });
+
+        it('should normalize blank optional assignment fields', () => {
+            const result = taskSchema.safeParse({
+                eventId: '507f1f77bcf86cd799439011',
+                title: 'Review burners',
+                assignedTo: '',
+                dueDate: '',
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.data.assignedTo).toBeUndefined();
+            expect(result.data.dueDate).toBeUndefined();
+        });
+    });
+
+    describe('taskReorderSchema', () => {
+        it('should accept valid task reorder payload', () => {
+            const result = taskReorderSchema.safeParse({
+                tasks: [
+                    { id: '507f1f77bcf86cd799439011', status: 'todo', order: 0 },
+                    { id: '507f1f77bcf86cd799439012', status: 'done', order: 1 },
+                ],
+            });
+
+            expect(result.success).toBe(true);
+        });
+
+        it('should reject empty task reorder payload', () => {
+            const result = taskReorderSchema.safeParse({ tasks: [] });
+            expect(result.success).toBe(false);
         });
     });
 });

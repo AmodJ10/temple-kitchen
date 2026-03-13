@@ -19,7 +19,7 @@ const Topbar = () => {
                 {/* Mobile menu toggle */}
                 <button
                     onClick={toggleSidebar}
-                    className="md:hidden p-2 rounded-lg hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] transition-colors duration-150"
+                    className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)] transition-colors duration-[var(--duration-fast)] [transition-timing-function:var(--ease-expo)]"
                 >
                     <Menu size={20} />
                 </button>
@@ -38,7 +38,7 @@ const Topbar = () => {
                     {/* Mobile Logout */}
                     <button
                         onClick={handleLogout}
-                        className="md:hidden p-2 flex items-center justify-center rounded-lg text-[var(--color-text-muted)] hover:bg-red-500/10 hover:text-red-400 transition-colors duration-150"
+                        className="md:hidden p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-danger-soft)] hover:text-[var(--color-danger)] transition-colors duration-[var(--duration-fast)] [transition-timing-function:var(--ease-expo)]"
                         title="Logout"
                     >
                         <LogOut size={18} />

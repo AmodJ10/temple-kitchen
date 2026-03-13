@@ -1,8 +1,29 @@
 import { io } from 'socket.io-client';
 
-// With Vite proxy handling /socket.io, we connect to the same origin.
-// In production, set VITE_SOCKET_URL to the actual server URL.
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || '';
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
+
+const resolveDevServerUrl = (configuredUrl) => {
+    if (!configuredUrl || !import.meta.env.DEV) {
+        return configuredUrl || '';
+    }
+
+    try {
+        const parsedUrl = new URL(configuredUrl, globalThis.location?.origin);
+        const currentHostname = globalThis.location?.hostname;
+
+        if (LOCAL_HOSTNAMES.has(parsedUrl.hostname) && LOCAL_HOSTNAMES.has(currentHostname || '')) {
+            return '';
+        }
+
+        return parsedUrl.origin;
+    } catch {
+        return configuredUrl;
+    }
+};
+
+// In development, prefer Vite's same-origin proxy to avoid cross-origin
+// websocket/cookie issues even if localhost backend URLs are present in .env.
+const SOCKET_URL = resolveDevServerUrl(import.meta.env.VITE_SOCKET_URL?.trim());
 
 /**
  * Singleton Socket.io client instance with auto-reconnect.
